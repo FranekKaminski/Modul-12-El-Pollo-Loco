@@ -12,20 +12,80 @@
     <script src="./models/chicken.class.js"></script>
     <script src="./models/cloud.class.js"></script>
     <script src="./models/status-bar.class.js"></script>
+    <script src="./models/coin-statusbar.class.js"></script>
+    <script src="./models/bottle-statusbar.class.js"></script>
+    <script src="./models/endboss-statusbar.class.js"></script>
+    <script src="./models/start-screen.class.js"></script>
     <script src="./models/world.class.js"></script>
     <script src="./models/background-object.class.js"></script>
     <script src="./models/keyboard.class.js"></script>
     <script src="./models/level.class.js"></script>
     <script src="./models/throwable-object.class.js"></script>
     <script src="./models/endboss.class.js"></script>
+    <script src="./models/coin.class.js"></script>
+    <script src="./models/bottle.class.js"></script>
     <script src="./levels/level1.js"></script>
     <script src="./js/game.js"></script>
-    <link rel="shortcut icon" href="./img/4_enemie_boss_chicken/1_walk/G1.png" type="image/x-icon">
-</head>
+    <style>
+        .button-modern {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff8c00, #ff6b00);
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+            transition: all 0.3s ease;
+            margin: 0 8px;
+        }
+        
+        .button-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, 0.6);
+            background: linear-gradient(135deg, #ff9e1f, #ff7c0a);
+        }
+        
+        .button-modern:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(255, 107, 0, 0.4);
+        }
+        
+        #buttonContainer {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 100;
+        }
+    </style>
 
 <body onload="init()">
     <h1>El pollo loco</h1>
-    <canvas id="canvas" width="720" height="480"></canvas>
+    <div id="gameContainer" style="position: relative; width: 720px; height: 480px;">
+        <canvas id="canvas" width="720" height="480"></canvas>
+        <div id="buttonContainer">
+            <button id="startButton" class="button-modern">START GAME</button>
+            <button id="instructionsButton" class="button-modern">INSTRUCTIONS</button>
+            <button id="fullscreenButton" class="button-modern">FULLSCREEN</button>
+        </div>
+        <button id="startCenterButton" class="button-modern" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; font-size: 18px; margin: 0; display: none;">START GAME</button>
+    </div>
+    
+    <div id="instructionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background-color: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 600px;">
+            <h2>HOW TO PLAY</h2>
+            <p>PRESS A OR LEFT ARROW-KEY TO GO LEFT</p>
+            <p>PRESS SPACE-KEY TO JUMP</p>
+            <p>PRESS D OR RIGHT ARROW-KEY TO GO RIGHT</p>
+            <p>PRESS ENTER TO THROW BOTTLES</p>
+            <button id="closeInstructionsButton" style="padding: 10px 20px; font-size: 16px; background-color: #ff6b00; color: white; border: none; border-radius: 5px; cursor: pointer;">CLOSE</button>
+        </div>
+    </div>
 </body>
 
 </html>
