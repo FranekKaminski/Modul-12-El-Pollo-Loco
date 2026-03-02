@@ -59,19 +59,112 @@
             transform: translateX(-50%);
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 10px;
             z-index: 100;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.45);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        #volumeSlider {
+            width: 100px;
+            cursor: pointer;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 720px;
+            height: 480px;
+        }
+
+        #gameContainer canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameContainer:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: black;
+        }
+
+        #gameContainer:-webkit-full-screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: black;
+        }
+
+        #gameContainer:fullscreen canvas {
+            width: auto;
+            height: 100vh;
+            aspect-ratio: 3 / 2;
+        }
+
+        #gameContainer:-webkit-full-screen canvas {
+            width: auto;
+            height: 100vh;
+            aspect-ratio: 3 / 2;
+        }
+
+        #gameOverOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1200;
+        }
+
+        #gameOverImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        #restartButton {
+            position: absolute;
+            left: 50%;
+            bottom: 24px;
+            transform: translateX(-50%);
+            z-index: 1300;
         }
     </style>
 
 <body onload="init()">
     <h1>El pollo loco</h1>
-    <div id="gameContainer" style="position: relative; width: 720px; height: 480px;">
+    <div id="gameContainer">
         <canvas id="canvas" width="720" height="480"></canvas>
         <div id="buttonContainer">
             <button id="startButton" class="button-modern">START GAME</button>
             <button id="instructionsButton" class="button-modern">INSTRUCTIONS</button>
             <button id="fullscreenButton" class="button-modern">FULLSCREEN</button>
+            <div class="volume-control">
+                <label for="volumeSlider">VOLUME</label>
+                <input id="volumeSlider" type="range" min="0" max="100" value="50" step="1">
+            </div>
+        </div>
+        <div id="gameOverOverlay">
+            <img id="gameOverImage" src="./img/9_intro_outro_screens/game_over/oh no you lost!.png" alt="Game Over">
+            <button id="restartButton" class="button-modern">RESTART</button>
         </div>
         <button id="startCenterButton" class="button-modern" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; font-size: 18px; margin: 0; display: none;">START GAME</button>
     </div>

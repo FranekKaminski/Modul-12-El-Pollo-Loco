@@ -1,4 +1,5 @@
 class ThrowableObject extends MovableObject {
+    world;
 
     constructor(x, y, direction) {
         super().loadImage("img/6_salsa_bottle/salsa_bottle.png");
@@ -15,6 +16,9 @@ class ThrowableObject extends MovableObject {
         this.speedY = 30;
         this.applyGravity();
         setInterval( () => {
+            if (this.world && (!this.world.gameStarted || this.world.gameOver)) {
+                return;
+            }
             if (direction) {
                 // Throw to the left
                 this.x -= 5;

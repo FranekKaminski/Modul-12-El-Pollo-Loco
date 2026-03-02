@@ -25,6 +25,19 @@ class Character extends MovableObject {
         "./img/2_character_pepe/1_idle/idle/I-9.png",
         "./img/2_character_pepe/1_idle/idle/I-10.png"
     ];
+
+    IMAGES_LONG_IDLE = [
+        "./img/2_character_pepe/1_idle/long_idle/I-11.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-12.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-13.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-14.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-15.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-16.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-17.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-18.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-19.png",
+        "./img/2_character_pepe/1_idle/long_idle/I-20.png"
+    ];
     
     IMAGES_DEAD = [
         "img/2_character_pepe/5_dead/D-51.png",
@@ -43,7 +56,15 @@ class Character extends MovableObject {
     ]
     
     world;
-    walking_sound = new Audio("./audio/character/characterRun.mp3")
+    walking_sound = new Audio("./audio/character/characterRun.mp3");
+    jump_sound = new Audio("./audio/character/characterJump.wav");
+    hurt_sound = new Audio("./audio/character/characterDamage.mp3");
+    dead_sound = new Audio("./audio/character/characterDead.wav");
+    snoring_sound = new Audio("./audio/character/characterSnoring.mp3");
+    idleSince = Date.now();
+    LONG_IDLE_DELAY = 3000;
+    deadSoundPlayed = false;
+    lastHurtSoundTimestamp = 0;
 
 
     IMAGES_JUMPING = [
@@ -62,28 +83,64 @@ class Character extends MovableObject {
         super().loadImage("./img/2_character_pepe/2_walk/W-21.png");
         this.loadImages(this.IMAGES_WALKING);
         this.loadImages(this.IMAGES_IDLE);
+        this.loadImages(this.IMAGES_LONG_IDLE);
         this.loadImages(this.IMAGES_JUMPING);
         this.loadImages(this.IMAGES_DEAD);
         this.loadImages(this.IMAGES_HURT);
+        this.walking_sound.loop = true;
+        this.snoring_sound.loop = true;
+        this.registerAudioAssets();
         this.y = 150;
         this.applyGravity();
         this.animate();
     }
 
+    registerAudioAssets() {
+        if (window.registerGameAudio) {
+            window.registerGameAudio(this.walking_sound);
+            window.registerGameAudio(this.jump_sound);
+            window.registerGameAudio(this.hurt_sound);
+            window.registerGameAudio(this.dead_sound);
+            window.registerGameAudio(this.snoring_sound);
+        }
+    }
+
+    applyCurrentVolume(sound) {
+        if (window.getGameVolume) {
+            sound.volume = window.getGameVolume();
+            sound.muted = sound.volume === 0;
+        }
+    }
+
+    playSound(sound) {
+        this.applyCurrentVolume(sound);
+        sound.currentTime = 0;
+        sound.play().catch(() => {});
+    }
+
+    startLoop(sound) {
+        this.applyCurrentVolume(sound);
+        sound.play().catch(() => {});
+    }
+
+    stopSound(sound) {
+        sound.pause();
+        sound.currentTime = 0;
+    }
+
     animate() {
         setInterval(() => {
             if (this.world.gameStarted) {
-                //this.walking_sound.pause();
                 if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
                     this.moveRight();
                     this.otherDirection = false;
-                    //this.walking_sound.play();
+                    this.idleSince = Date.now();
                 }
 
                 if (this.world.keyboard.LEFT && this.x > 0) {
                     this.moveLeft();
                     this.otherDirection = true;
-                    //this.walking_sound.play();
+                    this.idleSince = Date.now();
                 }
 
                 if (this.world.keyboard.SPACE && !this.IsAboveGround()) {
@@ -96,16 +153,43 @@ class Character extends MovableObject {
         setInterval(() => {
             if (this.world.gameStarted) {
                 if (this.isDead()) {
+                    if (!this.deadSoundPlayed) {
+                        this.stopSound(this.walking_sound);
+                        this.stopSound(this.snoring_sound);
+                        this.playSound(this.dead_sound);
+                        this.deadSoundPlayed = true;
+                    }
                     this.playAnimation(this.IMAGES_DEAD);
                 } else if(this.isHurt()) {
+                    this.stopSound(this.walking_sound);
+                    this.stopSound(this.snoring_sound);
+                    if (this.lastHurtSoundTimestamp !== this.lastHit) {
+                        this.playSound(this.hurt_sound);
+                        this.lastHurtSoundTimestamp = this.lastHit;
+                    }
+                    this.idleSince = Date.now();
                     this.playAnimation(this.IMAGES_HURT);
                 } else if (this.IsAboveGround()) {
+                    this.stopSound(this.walking_sound);
+                    this.stopSound(this.snoring_sound);
+                    this.idleSince = Date.now();
                     this.playAnimation(this.IMAGES_JUMPING);
                 } else {
                     if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
+                        this.stopSound(this.snoring_sound);
+                        this.startLoop(this.walking_sound);
+                        this.idleSince = Date.now();
                         this.playAnimation(this.IMAGES_WALKING);
                     } else {
-                        this.playAnimation(this.IMAGES_IDLE);
+                        this.stopSound(this.walking_sound);
+                        let idleDuration = Date.now() - this.idleSince;
+                        if (idleDuration >= this.LONG_IDLE_DELAY) {
+                            this.startLoop(this.snoring_sound);
+                            this.playAnimation(this.IMAGES_LONG_IDLE);
+                        } else {
+                            this.stopSound(this.snoring_sound);
+                            this.playAnimation(this.IMAGES_IDLE);
+                        }
                     }
                 }
             }
@@ -114,5 +198,8 @@ class Character extends MovableObject {
 
     jump() {
         this.speedY = 25;
+        this.stopSound(this.snoring_sound);
+        this.playSound(this.jump_sound);
+        this.idleSince = Date.now();
     }
 }

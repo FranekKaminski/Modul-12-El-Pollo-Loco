@@ -6,13 +6,13 @@
 + Rote border weg machen
 + Fullscreen: canvas.requestFullscreen()
 + Erklärung (welche tasten, html, css)
++ Audio hinzufügen (background music, jumping)
++ Game-Over Screen (wenn character health bei 0: Game over)
++ Fullscreen muss funktionieren
 
-- Fullscreen muss funktionieren
-- Game-Over Screen (wenn character health bei 0: Game over)
+
 - Endgegner besiegen (dead animation, endgegner health sinkt bei collision mit flasche, you win animation wenn health auf 0)
 - Springen auf hühnchen zerdrückt die hühnchen
-- It worked. I know have y = 150 in line 68. But once I jump, he stops way higher. this shouldnt happen
-
 
 Checkliste:
 https://docs.google.com/document/d/15UhpV2Ar1LGTd1kqDwHRslXj3tKKVswlv0Za78ki9qA/edit?tab=t.0#heading=h.opn8pdu251dm

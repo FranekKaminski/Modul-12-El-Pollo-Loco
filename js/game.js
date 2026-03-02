@@ -1,10 +1,49 @@
 let canvas;
 let world;
 let keyboard = new Keyboard();
+let gameVolume = 0.5;
+const registeredGameAudio = new Set();
+
+function applyVolumeToAudio(audio) {
+    audio.volume = gameVolume;
+    audio.muted = gameVolume === 0;
+}
+
+function registerGameAudio(audio) {
+    if (!audio) {
+        return;
+    }
+    registeredGameAudio.add(audio);
+    applyVolumeToAudio(audio);
+}
+
+function setGameVolume(volume) {
+    gameVolume = Math.max(0, Math.min(1, volume));
+    registeredGameAudio.forEach((audio) => applyVolumeToAudio(audio));
+}
+
+window.registerGameAudio = registerGameAudio;
+window.getGameVolume = () => gameVolume;
+window.setGameVolume = setGameVolume;
+window.showGameOverOverlay = () => {
+    const overlay = document.getElementById("gameOverOverlay");
+    if (overlay) {
+        overlay.style.display = "flex";
+    }
+};
 
 function init() {
+    const volumeSlider = document.getElementById("volumeSlider");
+    setGameVolume(Number(volumeSlider.value) / 100);
+    volumeSlider.addEventListener("input", () => {
+        setGameVolume(Number(volumeSlider.value) / 100);
+    });
+
     canvas = document.getElementById("canvas");
     world = new World(canvas, keyboard);
+
+    const gameOverOverlay = document.getElementById("gameOverOverlay");
+    gameOverOverlay.style.display = "none";
 
     console.log("My Character is", world.character);
 
@@ -38,6 +77,10 @@ function init() {
         if (event.target.id === "instructionsModal") {
             document.getElementById("instructionsModal").style.display = "none";
         }
+    });
+
+    document.getElementById("restartButton").addEventListener("click", () => {
+        location.reload();
     });
 }
 
