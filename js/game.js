@@ -183,12 +183,22 @@ function init() {
     setupBackgroundMusic();
     setupVolumeControls(ui.volumeSlider);
     setupWorld();
+    setupCanvasContextMenu();
     hideGameOverOverlay();
     setupMainButtons(ui);
     setupInstructionModal();
     setupRestartButton();
     setupTouchControls(ui.touchLeftButton, ui.touchRightButton, ui.touchJumpButton, ui.touchThrowButton, ui.touchBuyButton);
     setupMobileListeners();
+}
+
+function setupCanvasContextMenu() {
+    if (!isTouchDevice || !canvas) {
+        return;
+    }
+    canvas.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+    });
 }
 
 function setupBackgroundMusic() {
