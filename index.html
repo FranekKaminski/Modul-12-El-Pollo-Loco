@@ -10,6 +10,7 @@
     <script src="./models/movable-object.class.js"></script>
     <script src="./models/character.class.js"></script>
     <script src="./models/chicken.class.js"></script>
+    <script src="./models/chicken_small.class.js"></script>
     <script src="./models/cloud.class.js"></script>
     <script src="./models/status-bar.class.js"></script>
     <script src="./models/coin-statusbar.class.js"></script>
@@ -147,6 +148,160 @@
             transform: translateX(-50%);
             z-index: 1300;
         }
+
+        #muteButton {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1100;
+            display: none;
+            padding: 6px 10px;
+            font-size: 10px;
+            border-radius: 5px;
+            margin: 0;
+        }
+
+        #rotateOverlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            z-index: 1400;
+            font-size: 22px;
+            line-height: 1.4;
+        }
+
+        #touchControls {
+            position: absolute;
+            inset: 0;
+            display: none;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 14px;
+            z-index: 1150;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        .touch-group {
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .touch-button {
+            pointer-events: auto;
+            min-width: 60px;
+            height: 60px;
+            border: none;
+            color: white;
+            background: rgba(0, 0, 0, 0.45);
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            touch-action: none;
+            user-select: none;
+            padding: 0 10px;
+        }
+
+        .touch-button:active {
+            transform: scale(0.97);
+        }
+
+        #touchThrow,
+        #touchBuy {
+            min-width: 110px;
+            font-size: 14px;
+        }
+
+        .footer-link {
+            margin-top: 14px;
+        }
+
+        .footer-link a {
+            color: white;
+            font-size: 16px;
+            text-decoration: underline;
+            text-shadow: 0 0 6px rgba(0, 0, 0, 0.75);
+        }
+
+        @media only screen and (max-width: 900px) {
+            body {
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            #buttonContainer {
+                top: 8px;
+                width: calc(100% - 12px);
+                max-width: calc(100% - 12px);
+                gap: 6px;
+                flex-wrap: wrap;
+                padding: 0 6px;
+                box-sizing: border-box;
+            }
+
+            #buttonContainer .button-modern {
+                margin: 0;
+                padding: 8px 12px;
+                font-size: 11px;
+                border-radius: 6px;
+            }
+
+            #fullscreenButton {
+                display: none;
+            }
+
+            .volume-control {
+                padding: 6px 8px;
+                font-size: 11px;
+                gap: 6px;
+            }
+
+            #volumeSlider {
+                width: 72px;
+            }
+
+            h1 {
+                font-size: 42px;
+                letter-spacing: 4px;
+                margin: 0 0 8px 0;
+            }
+
+            #gameContainer {
+                width: min(100vw, calc(100dvh * 1.5));
+                height: min(calc(100vw / 1.5), 100dvh);
+                max-width: 720px;
+                max-height: 480px;
+            }
+
+            .footer-link {
+                margin-top: 8px;
+            }
+        }
+
+        @media only screen and (max-width: 900px) and (orientation: landscape) {
+            body {
+                justify-content: center;
+                overflow: hidden;
+                min-height: 100dvh;
+            }
+
+            h1,
+            .footer-link {
+                display: none;
+            }
+
+            #gameContainer {
+                width: min(100vw, calc(100dvh * 1.5));
+                height: min(100dvh, calc(100vw / 1.5));
+            }
+        }
     </style>
 
 <body onload="init()">
@@ -166,6 +321,19 @@
             <img id="gameOverImage" src="./img/9_intro_outro_screens/game_over/oh no you lost!.png" alt="Game Over">
             <button id="restartButton" class="button-modern">RESTART</button>
         </div>
+        <div id="rotateOverlay">Please rotate your device horizontally to play.</div>
+        <div id="touchControls">
+            <div class="touch-group">
+                <button id="touchLeft" class="touch-button" aria-label="Move left">◀</button>
+                <button id="touchRight" class="touch-button" aria-label="Move right">▶</button>
+                <button id="touchJump" class="touch-button" aria-label="Jump">JUMP</button>
+            </div>
+            <div class="touch-group">
+                <button id="touchThrow" class="touch-button" aria-label="Throw bottle">THROW BOTTLE</button>
+                <button id="touchBuy" class="touch-button" aria-label="Buy coins">BUY COINS</button>
+            </div>
+        </div>
+        <button id="muteButton" class="button-modern">MUTE</button>
         <button id="startCenterButton" class="button-modern" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; font-size: 18px; margin: 0; display: none;">START GAME</button>
     </div>
     
@@ -176,9 +344,14 @@
             <p>PRESS SPACE-KEY TO JUMP</p>
             <p>PRESS D OR RIGHT ARROW-KEY TO GO RIGHT</p>
             <p>PRESS ENTER TO THROW BOTTLES</p>
+            <p>PRESS B TO BUY 1 BOTTLE WITH 1 COIN</p>
             <button id="closeInstructionsButton" style="padding: 10px 20px; font-size: 16px; background-color: #ff6b00; color: white; border: none; border-radius: 5px; cursor: pointer;">CLOSE</button>
         </div>
     </div>
+
+    <footer class="footer-link">
+        <a href="./impressum.html">Impressum</a>
+    </footer>
 </body>
 
 </html>

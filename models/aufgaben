@@ -9,10 +9,19 @@
 + Audio hinzufügen (background music, jumping)
 + Game-Over Screen (wenn character health bei 0: Game over)
 + Fullscreen muss funktionieren
++ Endgegner besiegen, you win animation wenn health auf 0
++ mute button ingame
++ Impressum hinzufügen mit fake daten
++ Springen auf hühnchen zerdrückt die hühnchen
++ mini hühnchen hinzufügen als gegner
++ hühnchen hitbox von oben springen größer machen
++ Mobile rotation screen etc
++ die flaschen kann ich manchmal werfen und manchmal nicht
++ buyable bottles
++ all functions 14 lines
++ Mobile touch buttons verbessern & hinzufügen
 
-
-- Endgegner besiegen (dead animation, endgegner health sinkt bei collision mit flasche, you win animation wenn health auf 0)
-- Springen auf hühnchen zerdrückt die hühnchen
+- map länger machen
 
 Checkliste:
 https://docs.google.com/document/d/15UhpV2Ar1LGTd1kqDwHRslXj3tKKVswlv0Za78ki9qA/edit?tab=t.0#heading=h.opn8pdu251dm

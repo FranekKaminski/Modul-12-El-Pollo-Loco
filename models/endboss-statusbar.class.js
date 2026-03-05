@@ -35,18 +35,16 @@ class EndbossStatusbar extends DrawableObject {
     }
     
     resolveImageIndex() {
-        if (this.percentage >= 100) {
-            return 5;
-        } else if (this.percentage >= 80) {
-            return 4;
-        } else if (this.percentage >= 60) {
-            return 3;
-        } else if (this.percentage >= 40) {
-            return 2;
-        } else if (this.percentage >= 20) {
-            return 1;
-        } else {
-            return 0;
+        const thresholds = [100, 80, 60, 40, 20];
+        for (let i = 0; i < thresholds.length; i++) {
+            if (this.isAtLeastThreshold(thresholds[i])) {
+                return 5 - i;
+            }
         }
+        return 0;
+    }
+
+    isAtLeastThreshold(threshold) {
+        return this.percentage >= threshold;
     }
 }

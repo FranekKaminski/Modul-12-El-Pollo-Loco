@@ -1,43 +1,50 @@
-class Chicken extends MovableObject {
-    y = 345;
-    height = 85;
-    width = 85;
+class SmallChicken extends MovableObject {
+    y = 360;
+    height = 60;
+    width = 60;
     deadAt = null;
     DEAD_REMOVE_DELAY = 2000;
     offset = {
-        top: 10,
-        bottom: 10,
-        left: 10,
-        right: 10,
+        top: 8,
+        bottom: 8,
+        left: 8,
+        right: 8,
     };
     IMAGES_WALKING = [
-        "./img/3_enemies_chicken/chicken_normal/1_walk/1_w.png",
-        "./img/3_enemies_chicken/chicken_normal/1_walk/2_w.png",
-        "./img/3_enemies_chicken/chicken_normal/1_walk/3_w.png"
+        "./img/3_enemies_chicken/chicken_small/1_walk/1_w.png",
+        "./img/3_enemies_chicken/chicken_small/1_walk/2_w.png",
+        "./img/3_enemies_chicken/chicken_small/1_walk/3_w.png"
     ];
 
     IMAGES_DEAD = [
-        "./img/3_enemies_chicken/chicken_normal/2_dead/dead.png"
+        "./img/3_enemies_chicken/chicken_small/2_dead/dead.png"
     ];
 
     constructor(x) {
-        super().loadImage("./img/3_enemies_chicken/chicken_normal/1_walk/1_w.png");
+        super().loadImage("./img/3_enemies_chicken/chicken_small/1_walk/1_w.png");
         this.loadImages(this.IMAGES_WALKING);
         this.loadImages(this.IMAGES_DEAD);
-        this.x = x !== undefined ? x : 200 + Math.random() * 500;
-        this.speed = 0.15 + Math.random() * 0.5;
+        this.x = x !== undefined ? x : 300 + Math.random() * 800;
+        this.speed = 0.25 + Math.random() * 0.3;
         this.energy = 1;
         this.world;
         this.animate();
     }
 
     animate() {
+        this.startMoveLoop();
+        this.startAnimationLoop();
+    }
+
+    startMoveLoop() {
         setInterval(() => {
             if (this.world && this.world.gameStarted && !this.isDead()) {
                 this.moveLeft();
             }
         }, 1000 / 60);
+    }
 
+    startAnimationLoop() {
         setInterval(() => {
             if (this.world && this.world.gameStarted) {
                 if (this.isDead()) {

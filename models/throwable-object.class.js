@@ -15,17 +15,27 @@ class ThrowableObject extends MovableObject {
     throw(direction) {
         this.speedY = 30;
         this.applyGravity();
+        this.startThrowLoop(direction);
+    }
+
+    startThrowLoop(direction) {
         setInterval( () => {
-            if (this.world && (!this.world.gameStarted || this.world.gameOver)) {
+            if (this.shouldSkipThrowFrame()) {
                 return;
             }
-            if (direction) {
-                // Throw to the left
-                this.x -= 5;
-            } else {
-                // Throw to the right
-                this.x += 5;
-            }
+            this.moveThrownBottle(direction);
         }, 25);
+    }
+
+    shouldSkipThrowFrame() {
+        return this.world && (!this.world.gameStarted || this.world.gameOver);
+    }
+
+    moveThrownBottle(direction) {
+        if (direction) {
+            this.x -= 5;
+            return;
+        }
+        this.x += 5;
     }
 }

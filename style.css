@@ -1,3 +1,11 @@
+html {
+    width: 100%;
+    min-height: 100%;
+    min-height: 100dvh;
+    overflow: hidden;
+    background: url(./img/assets/desert.jpg) no-repeat center center / cover;
+}
+
 body {
     margin: 0px;
     padding: 0px;
@@ -5,7 +13,10 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
     background: url(./img/assets/desert.jpg);
     background-repeat: no-repeat;
     background-position: center;
@@ -40,6 +51,6 @@ canvas {
 
 @media only screen and (max-height: 480px) {
     canvas {
-        height: 100vh;
+        height: 100dvh;
     }
 }
