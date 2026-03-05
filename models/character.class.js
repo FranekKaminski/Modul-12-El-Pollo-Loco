@@ -62,6 +62,7 @@ class Character extends MovableObject {
     dead_sound = new Audio("./audio/character/characterDead.wav");
     snoring_sound = new Audio("./audio/character/characterSnoring.mp3");
     idleSince = Date.now();
+    IDLE_ANIMATION_DELAY = 10000;
     LONG_IDLE_DELAY = 15000;
     deadSoundPlayed = false;
     lastHurtSoundTimestamp = 0;
@@ -261,6 +262,11 @@ class Character extends MovableObject {
 
     handleIdleAnimation() {
         this.stopSound(this.walking_sound);
+        if (Date.now() - this.idleSince < this.IDLE_ANIMATION_DELAY) {
+            this.stopSound(this.snoring_sound);
+            this.playAnimation(this.IMAGES_IDLE);
+            return;
+        }
         if (Date.now() - this.idleSince >= this.LONG_IDLE_DELAY) {
             this.startLoop(this.snoring_sound);
             this.playAnimation(this.IMAGES_LONG_IDLE);

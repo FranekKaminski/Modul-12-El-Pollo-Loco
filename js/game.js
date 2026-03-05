@@ -7,6 +7,7 @@ let isTouchDevice = false;
 let pausedByPortraitMode = false;
 let wasGameRunningBeforePortrait = false;
 const registeredGameAudio = new Set();
+const backgroundMusic = new Audio("./audio/background_music/hitslab-game-gaming-music-295075.mp3");
 
 function detectTouchDevice() {
     return ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
@@ -179,6 +180,7 @@ window.showGameWonOverlay = () => {
 function init() {
     const ui = getInitUIElements();
     isTouchDevice = detectTouchDevice();
+    setupBackgroundMusic();
     setupVolumeControls(ui.volumeSlider);
     setupWorld();
     hideGameOverOverlay();
@@ -187,6 +189,20 @@ function init() {
     setupRestartButton();
     setupTouchControls(ui.touchLeftButton, ui.touchRightButton, ui.touchJumpButton, ui.touchThrowButton, ui.touchBuyButton);
     setupMobileListeners();
+}
+
+function setupBackgroundMusic() {
+    backgroundMusic.loop = true;
+    registerGameAudio(backgroundMusic);
+}
+
+function startBackgroundMusic() {
+    backgroundMusic.play().catch(() => {});
+}
+
+function stopBackgroundMusic() {
+    backgroundMusic.pause();
+    backgroundMusic.currentTime = 0;
 }
 
 function getInitUIElements() {
@@ -228,6 +244,7 @@ function setupMainButtons(ui) {
 function setupStartButton(muteButton) {
     document.getElementById("startButton").addEventListener("click", () => {
         world.startGame();
+        startBackgroundMusic();
         document.getElementById("buttonContainer").style.display = "none";
         muteButton.style.display = "block";
         updateMobileGameplayUI();
@@ -284,6 +301,7 @@ function closeInstructionsOnBackdrop(event) {
 
 function setupRestartButton() {
     document.getElementById("restartButton").addEventListener("click", () => {
+        stopBackgroundMusic();
         location.reload();
     });
 }
