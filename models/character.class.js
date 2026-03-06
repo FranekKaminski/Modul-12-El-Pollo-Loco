@@ -1,3 +1,7 @@
+/**
+ * Player character implementation with movement, animation and sound logic.
+ * @extends MovableObject
+ */
 class Character extends MovableObject {
 
     height = 280;
@@ -80,12 +84,19 @@ class Character extends MovableObject {
         "./img/2_character_pepe/3_jump/J-39.png",
     ];
 
+    /**
+     * Creates the character and initializes assets, physics and loops.
+     */
     constructor() {
         super().loadImage("./img/2_character_pepe/2_walk/W-21.png");
         this.loadCharacterImages();
         this.initializeCharacterState();
     }
 
+    /**
+     * Preloads all character animation sprites.
+     * @returns {void}
+     */
     loadCharacterImages() {
         this.loadImages(this.IMAGES_WALKING);
         this.loadImages(this.IMAGES_IDLE);
@@ -95,6 +106,10 @@ class Character extends MovableObject {
         this.loadImages(this.IMAGES_HURT);
     }
 
+    /**
+     * Initializes runtime state, sounds and animation loops.
+     * @returns {void}
+     */
     initializeCharacterState() {
         this.walking_sound.loop = true;
         this.snoring_sound.loop = true;
@@ -104,6 +119,10 @@ class Character extends MovableObject {
         this.animate();
     }
 
+    /**
+     * Registers character audio in global volume handling.
+     * @returns {void}
+     */
     registerAudioAssets() {
         if (window.registerGameAudio) {
             window.registerGameAudio(this.walking_sound);
@@ -114,6 +133,11 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Applies the active game volume to a sound instance.
+     * @param {HTMLAudioElement} sound Sound instance.
+     * @returns {void}
+     */
     applyCurrentVolume(sound) {
         if (window.getGameVolume) {
             sound.volume = window.getGameVolume();
@@ -121,22 +145,41 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Plays a sound once from the beginning.
+     * @param {HTMLAudioElement} sound Sound instance.
+     * @returns {void}
+     */
     playSound(sound) {
         this.applyCurrentVolume(sound);
         sound.currentTime = 0;
         sound.play().catch(() => {});
     }
 
+    /**
+     * Starts a looping sound.
+     * @param {HTMLAudioElement} sound Sound instance.
+     * @returns {void}
+     */
     startLoop(sound) {
         this.applyCurrentVolume(sound);
         sound.play().catch(() => {});
     }
 
+    /**
+     * Stops a sound and resets its playback position.
+     * @param {HTMLAudioElement} sound Sound instance.
+     * @returns {void}
+     */
     stopSound(sound) {
         sound.pause();
         sound.currentTime = 0;
     }
 
+    /**
+     * Starts movement and animation update loops.
+     * @returns {void}
+     */
     animate() {
         this.startMovementLoop();
         this.startAnimationLoop();
@@ -276,6 +319,10 @@ class Character extends MovableObject {
         this.playAnimation(this.IMAGES_IDLE);
     }
 
+    /**
+     * Handles character-specific jump behavior and sound.
+     * @returns {void}
+     */
     jump() {
         this.speedY = 25;
         this.stopSound(this.snoring_sound);

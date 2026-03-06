@@ -1,3 +1,7 @@
+/**
+ * Small chicken enemy variant with faster movement.
+ * @extends MovableObject
+ */
 class SmallChicken extends MovableObject {
     y = 360;
     height = 60;
@@ -20,6 +24,9 @@ class SmallChicken extends MovableObject {
         "./img/3_enemies_chicken/chicken_small/2_dead/dead.png"
     ];
 
+    /**
+     * @param {number} [x] Optional start x position.
+     */
     constructor(x) {
         super().loadImage("./img/3_enemies_chicken/chicken_small/1_walk/1_w.png");
         this.loadImages(this.IMAGES_WALKING);
@@ -31,6 +38,10 @@ class SmallChicken extends MovableObject {
         this.animate();
     }
 
+    /**
+     * Starts movement and animation loops.
+     * @returns {void}
+     */
     animate() {
         this.startMoveLoop();
         this.startAnimationLoop();
@@ -56,6 +67,10 @@ class SmallChicken extends MovableObject {
         }, 100);
     }
 
+    /**
+     * Sets the enemy as dead and stores the death timestamp.
+     * @returns {void}
+     */
     markAsDead() {
         if (this.deadAt !== null) {
             return;
@@ -64,6 +79,10 @@ class SmallChicken extends MovableObject {
         this.deadAt = Date.now();
     }
 
+    /**
+     * Returns true when dead enemy can be removed from rendering.
+     * @returns {boolean}
+     */
     shouldDisappear() {
         return this.deadAt !== null && Date.now() - this.deadAt >= this.DEAD_REMOVE_DELAY;
     }

@@ -1,3 +1,9 @@
+/**
+ * @typedef {Object} MobileUIElements
+ * @property {HTMLElement|null} rotateOverlay Overlay shown in portrait mode.
+ * @property {HTMLElement|null} touchControls Touch control container.
+ */
+
 let canvas;
 let world;
 let keyboard = new Keyboard();
@@ -6,13 +12,22 @@ let volumeBeforeMute = 0.5;
 let isTouchDevice = false;
 let pausedByPortraitMode = false;
 let wasGameRunningBeforePortrait = false;
+const AUDIO_SETTINGS_STORAGE_KEY = "el-pollo-loco-audio-settings";
 const registeredGameAudio = new Set();
 const backgroundMusic = new Audio("./audio/background_music/hitslab-game-gaming-music-295075.mp3");
 
+/**
+ * Detects whether the current device supports touch input.
+ * @returns {boolean}
+ */
 function detectTouchDevice() {
     return ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
 }
 
+/**
+ * Returns true when viewport is portrait-oriented.
+ * @returns {boolean}
+ */
 function isPortraitMode() {
     return window.innerHeight > window.innerWidth;
 }
@@ -22,24 +37,51 @@ function stopHorizontalInput() {
     keyboard.RIGHT = false;
 }
 
+/**
+ * Updates mobile-only gameplay controls and rotate hint.
+ * @returns {void}
+ */
 function updateMobileGameplayUI() {
     const mobileUI = getMobileUIElements();
+    const impressumButton = document.getElementById("impressumButton");
     if (!hasMobileUIElements(mobileUI)) {
+        updateImpressumStartButtonVisibility(impressumButton);
         return;
     }
     if (!isTouchDevice) {
-        return hideMobileUI(mobileUI);
+        hideMobileUI(mobileUI);
+        updateImpressumStartButtonVisibility(impressumButton);
+        return;
     }
     if (isPortraitMode()) {
-        return handlePortraitMode(mobileUI);
+        handlePortraitMode(mobileUI);
+        updateImpressumStartButtonVisibility(impressumButton);
+        return;
     }
     handleLandscapeMode(mobileUI);
+    updateImpressumStartButtonVisibility(impressumButton);
+}
+
+function updateImpressumStartButtonVisibility(impressumButton = document.getElementById("impressumButton")) {
+    if (!impressumButton) {
+        return;
+    }
+    const shouldShow = isTouchDevice
+        && !isPortraitMode()
+        && world
+        && !world.gameStarted
+        && !world.gameOver;
+    impressumButton.style.display = shouldShow ? "inline-block" : "none";
 }
 
 function hasMobileUIElements(mobileUI) {
     return !!mobileUI.rotateOverlay && !!mobileUI.touchControls;
 }
 
+/**
+ * Reads all mobile gameplay UI elements.
+ * @returns {MobileUIElements}
+ */
 function getMobileUIElements() {
     return {
         rotateOverlay: document.getElementById("rotateOverlay"),
@@ -132,12 +174,48 @@ function registerGameAudio(audio) {
     applyVolumeToAudio(audio);
 }
 
+/**
+ * Sets and persists global game volume.
+ * @param {number} volume New volume from 0 to 1.
+ * @returns {void}
+ */
 function setGameVolume(volume) {
     gameVolume = Math.max(0, Math.min(1, volume));
     if (gameVolume > 0) {
         volumeBeforeMute = gameVolume;
     }
     registeredGameAudio.forEach((audio) => applyVolumeToAudio(audio));
+    persistAudioSettings();
+}
+
+function persistAudioSettings() {
+    try {
+        localStorage.setItem(AUDIO_SETTINGS_STORAGE_KEY, JSON.stringify({
+            gameVolume,
+            volumeBeforeMute
+        }));
+    } catch (_) {
+        // Ignore storage errors (private mode/quota/full storage).
+    }
+}
+
+function loadStoredAudioSettings() {
+    try {
+        const rawSettings = localStorage.getItem(AUDIO_SETTINGS_STORAGE_KEY);
+        if (!rawSettings) {
+            return;
+        }
+
+        const parsedSettings = JSON.parse(rawSettings);
+        if (typeof parsedSettings.gameVolume === "number") {
+            gameVolume = Math.max(0, Math.min(1, parsedSettings.gameVolume));
+        }
+        if (typeof parsedSettings.volumeBeforeMute === "number") {
+            volumeBeforeMute = Math.max(0, Math.min(1, parsedSettings.volumeBeforeMute));
+        }
+    } catch (_) {
+        // Ignore malformed settings and keep defaults.
+    }
 }
 
 function updateMuteButtonLabel() {
@@ -177,9 +255,14 @@ window.showGameWonOverlay = () => {
     updateMobileGameplayUI();
 };
 
+/**
+ * Initializes game UI, world state and input listeners.
+ * @returns {void}
+ */
 function init() {
     const ui = getInitUIElements();
     isTouchDevice = detectTouchDevice();
+    loadStoredAudioSettings();
     setupBackgroundMusic();
     setupVolumeControls(ui.volumeSlider);
     setupWorld();
@@ -219,6 +302,7 @@ function getInitUIElements() {
     return {
         volumeSlider: document.getElementById("volumeSlider"),
         muteButton: document.getElementById("muteButton"),
+        impressumButton: document.getElementById("impressumButton"),
         touchLeftButton: document.getElementById("touchLeft"),
         touchRightButton: document.getElementById("touchRight"),
         touchJumpButton: document.getElementById("touchJump"),
@@ -228,7 +312,8 @@ function getInitUIElements() {
 }
 
 function setupVolumeControls(volumeSlider) {
-    setGameVolume(Number(volumeSlider.value) / 100);
+    volumeSlider.value = Math.round(gameVolume * 100);
+    setGameVolume(gameVolume);
     updateMuteButtonLabel();
     volumeSlider.addEventListener("input", () => {
         setGameVolume(Number(volumeSlider.value) / 100);
@@ -236,7 +321,14 @@ function setupVolumeControls(volumeSlider) {
     });
 }
 
+/**
+ * Creates a fresh world instance and canvas binding.
+ * @returns {void}
+ */
 function setupWorld() {
+    if (typeof resetLevel1 === "function") {
+        resetLevel1();
+    }
     canvas = document.getElementById("canvas");
     world = new World(canvas, keyboard);
 }
@@ -247,8 +339,19 @@ function hideGameOverOverlay() {
 
 function setupMainButtons(ui) {
     setupStartButton(ui.muteButton);
+    setupImpressumButton(ui.impressumButton);
     setupMuteButton(ui.muteButton, ui.volumeSlider);
     setupFullscreenButton();
+}
+
+function setupImpressumButton(impressumButton) {
+    if (!impressumButton) {
+        return;
+    }
+    impressumButton.addEventListener("click", () => {
+        window.location.href = "./impressum.html";
+    });
+    updateImpressumStartButtonVisibility(impressumButton);
 }
 
 function setupStartButton(muteButton) {
@@ -311,9 +414,38 @@ function closeInstructionsOnBackdrop(event) {
 
 function setupRestartButton() {
     document.getElementById("restartButton").addEventListener("click", () => {
-        stopBackgroundMusic();
-        location.reload();
+        restartGameWithoutReload();
     });
+}
+
+/**
+ * Fully restarts the game session without reloading the page.
+ * @returns {void}
+ */
+function restartGameWithoutReload() {
+    stopBackgroundMusic();
+    if (world && typeof world.destroy === "function") {
+        world.destroy();
+    }
+    resetKeyboardState();
+    closeInstructionsModal();
+    document.getElementById("buttonContainer").style.display = "flex";
+    document.getElementById("muteButton").style.display = "none";
+    hideGameOverOverlay();
+    pausedByPortraitMode = false;
+    wasGameRunningBeforePortrait = false;
+    setupWorld();
+    updateMobileGameplayUI();
+}
+
+function resetKeyboardState() {
+    keyboard.RIGHT = false;
+    keyboard.LEFT = false;
+    keyboard.UP = false;
+    keyboard.DOWN = false;
+    keyboard.SPACE = false;
+    keyboard.D = false;
+    keyboard.B = false;
 }
 
 function setupTouchControls(touchLeftButton, touchRightButton, touchJumpButton, touchThrowButton, touchBuyButton) {
@@ -334,6 +466,12 @@ function setupMobileListeners() {
 window.addEventListener("keydown", (event) => setKeyboardState(event, true));
 window.addEventListener("keyup", (event) => setKeyboardState(event, false));
 
+/**
+ * Applies keydown/keyup events to mapped game controls.
+ * @param {KeyboardEvent} event Keyboard event.
+ * @param {boolean} isPressed Current key state.
+ * @returns {void}
+ */
 function setKeyboardState(event, isPressed) {
     applyHorizontalKeys(event.key, isPressed);
     applyVerticalKeys(event.key, isPressed);

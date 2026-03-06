@@ -1,3 +1,6 @@
+/**
+ * Tracks pressed/released state of mapped game controls.
+ */
 class Keyboard {
     LEFT = false;
     RIGHT = false;

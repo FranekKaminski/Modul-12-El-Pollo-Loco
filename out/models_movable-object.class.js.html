@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/movable-object.class.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/movable-object.class.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Adds movement, gravity and collision behavior to drawable objects.
+ * @extends DrawableObject
+ */
+class MovableObject extends DrawableObject {
+    speed = 0.15;
+    otherDirection = false;
+    speedY = 0;
+    acceleration = 2.5;
+    energy = 100;
+    lastHit = 0;
+    offset = {
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+    };
+
+    /**
+     * Starts the gravity loop for the object.
+     * @returns {void}
+     */
+    applyGravity() {
+        setInterval(() => {
+            if (this.world &amp;&amp; (!this.world.gameStarted || this.world.gameOver)) {
+                return;
+            }
+            if (this.IsAboveGround() || this.speedY > 0) {
+                this.y -= this.speedY;
+                this.speedY -= this.acceleration;
+            }
+        }, 1000 / 25);
+    }
+
+    /**
+     * Checks whether the object is currently above ground.
+     * @returns {boolean}
+     */
+    IsAboveGround() {
+        if (this instanceof ThrowableObject) {
+            return true;
+        } else {
+            return this.y &lt; 150;
+        }
+    }
+
+    /**
+     * Performs an axis-aligned bounding box collision check.
+     * @param {MovableObject} mo Other movable object.
+     * @returns {boolean}
+     */
+    isColliding(mo) {
+        return this.x + this.width - this.offset.right > mo.x + mo.offset.left &amp;&amp;
+            this.y + this.height - this.offset.bottom > mo.y + mo.offset.top &amp;&amp;
+            this.x + this.offset.left &lt; mo.x + mo.width - mo.offset.right &amp;&amp;
+            this.y + this.offset.top &lt; mo.y + mo.height - mo.offset.bottom;
+    }
+
+    /**
+     * Applies damage to this object.
+     * @param {number} [damage=5] Damage points.
+     * @returns {void}
+     */
+    hit(damage = 5) {
+        this.energy -= damage;
+        if (this.energy &lt; 0) {
+            this.energy = 0;
+        } else {
+            this.lastHit = new Date().getTime();
+        }
+    }
+
+    /**
+     * Checks whether damage cooldown has passed.
+     * @param {number} [cooldownMs=1000] Cooldown in milliseconds.
+     * @returns {boolean}
+     */
+    canTakeDamage(cooldownMs = 1000) {
+        return new Date().getTime() - this.lastHit >= cooldownMs;
+    }
+
+    /**
+     * Returns whether the object is in a short hurt state.
+     * @returns {boolean}
+     */
+    isHurt() {
+        let timepassed = new Date().getTime() - this.lastHit;
+        timepassed = timepassed / 1000;
+        return timepassed &lt; 0.3;
+    }
+
+    /**
+     * Returns whether the object has no energy left.
+     * @returns {boolean}
+     */
+    isDead() {
+        return this.energy == 0;
+    }
+
+
+    //     if(character.x + character.width > chicken.x &amp;&amp;
+    //         character.y + character.height > chicken.y &amp;&amp;
+    //         character.x &lt; chicken.x &amp;&amp;
+    //         character.y &lt; chicken.y + chicken.height
+    // )
+
+    /**
+     * Advances to the next frame in an animation sprite list.
+     * @param {string[]} images Sprite frame paths.
+     * @returns {void}
+     */
+    playAnimation(images) {
+        let i = this.currentImage % images.length;
+        let path = images[i];
+        this.img = this.imageCache[path];
+        this.currentImage++;
+    }
+
+    /**
+     * Moves the object to the right.
+     * @returns {void}
+     */
+    moveRight() {
+        this.x += this.speed;
+    }
+
+    /**
+     * Moves the object to the left.
+     * @returns {void}
+     */
+    moveLeft() {
+        this.x -= this.speed;
+    }
+
+    /**
+     * Applies upward jump impulse.
+     * @returns {void}
+     */
+    jump() {
+        this.speedY = 30;
+    }
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BackgroundObject.html">BackgroundObject</a></li><li><a href="Bottle.html">Bottle</a></li><li><a href="BottleStatusbar.html">BottleStatusbar</a></li><li><a href="Character.html">Character</a></li><li><a href="Chicken.html">Chicken</a></li><li><a href="Cloud.html">Cloud</a></li><li><a href="Coin.html">Coin</a></li><li><a href="CoinStatusbar.html">CoinStatusbar</a></li><li><a href="DrawableObject.html">DrawableObject</a></li><li><a href="Endboss.html">Endboss</a></li><li><a href="EndbossStatusbar.html">EndbossStatusbar</a></li><li><a href="Keyboard.html">Keyboard</a></li><li><a href="Level.html">Level</a></li><li><a href="MovableObject.html">MovableObject</a></li><li><a href="SmallChicken.html">SmallChicken</a></li><li><a href="StartScreen.html">StartScreen</a></li><li><a href="Statusbar.html">Statusbar</a></li><li><a href="ThrowableObject.html">ThrowableObject</a></li><li><a href="World.html">World</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createLevel1">createLevel1</a></li><li><a href="global.html#detectTouchDevice">detectTouchDevice</a></li><li><a href="global.html#getMobileUIElements">getMobileUIElements</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isPortraitMode">isPortraitMode</a></li><li><a href="global.html#resetLevel1">resetLevel1</a></li><li><a href="global.html#restartGameWithoutReload">restartGameWithoutReload</a></li><li><a href="global.html#setGameVolume">setGameVolume</a></li><li><a href="global.html#setKeyboardState">setKeyboardState</a></li><li><a href="global.html#setupWorld">setupWorld</a></li><li><a href="global.html#updateMobileGameplayUI">updateMobileGameplayUI</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Mar 06 2026 16:08:33 GMT+0100 (Central European Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

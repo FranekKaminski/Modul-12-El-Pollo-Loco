@@ -1,54 +1,71 @@
-const level1 = new Level(
-    [
-        new Chicken(400),
-        new Chicken(800),
-        new SmallChicken(600),
-        new Chicken(1200),
-        new SmallChicken(1400),
-        new Chicken(1600),
-        new Chicken(2000),
-        new Endboss()
-    ],
-    [
-        new Cloud(),
-    ],
-    [
-        new BackgroundObject("./img/5_background/layers/air.png", -720),
-        new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", -720),
-        new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", -720),
-        new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", -720),
-        new BackgroundObject("./img/5_background/layers/air.png", 0),
-        new BackgroundObject("./img/5_background/layers/3_third_layer/1.png", 0),
-        new BackgroundObject("./img/5_background/layers/2_second_layer/1.png", 0),
-        new BackgroundObject("./img/5_background/layers/1_first_layer/1.png", 0),
-        new BackgroundObject("./img/5_background/layers/air.png", 720),
-        new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", 720),
-        new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", 720),
-        new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", 720),
-        new BackgroundObject("./img/5_background/layers/air.png", 720 * 2),
-        new BackgroundObject("./img/5_background/layers/3_third_layer/1.png", 720 * 2),
-        new BackgroundObject("./img/5_background/layers/2_second_layer/1.png", 720 * 2),
-        new BackgroundObject("./img/5_background/layers/1_first_layer/1.png", 720 * 2),
-        new BackgroundObject("./img/5_background/layers/air.png", 720 * 3),
-        new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", 720 * 3),
-        new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", 720 * 3),
-        new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", 720 * 3)
-    ],
-    [
-        new Coin(),
-        new Coin(),
-        new Coin(),
-        new Coin(),
-        new Coin(),
-    ],
-    [
-        new Bottle(),
-        new Bottle(),
-        new Bottle(),
-        new Bottle(),
-        new Bottle(),
-        new Bottle(),
-        new Bottle(),
-        new Bottle(),
-    ]
-);
+/**
+ * Creates a fresh instance of level 1 with all entities.
+ * @returns {Level}
+ */
+function createLevel1() {
+    return new Level(
+        [
+            new Chicken(400),
+            new Chicken(800),
+            new SmallChicken(600),
+            new Chicken(1200),
+            new SmallChicken(1400),
+            new Chicken(1600),
+            new Chicken(2000),
+            new Endboss()
+        ],
+        [
+            new Cloud(),
+        ],
+        [
+            new BackgroundObject("./img/5_background/layers/air.png", -720),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", -720),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", -720),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", -720),
+            new BackgroundObject("./img/5_background/layers/air.png", 0),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/1.png", 0),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/1.png", 0),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/1.png", 0),
+            new BackgroundObject("./img/5_background/layers/air.png", 720),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", 720),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", 720),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", 720),
+            new BackgroundObject("./img/5_background/layers/air.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/1.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/1.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/1.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/air.png", 720 * 3),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", 720 * 3),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", 720 * 3),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", 720 * 3)
+        ],
+        [
+            new Coin(),
+            new Coin(),
+            new Coin(),
+            new Coin(),
+            new Coin(),
+        ],
+        [
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+        ]
+    );
+}
+
+let level1 = createLevel1();
+
+/**
+ * Rebuilds level 1 to reset all entities and collectibles.
+ * @returns {Level}
+ */
+function resetLevel1() {
+    level1 = createLevel1();
+    return level1;
+}

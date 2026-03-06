@@ -1,3 +1,7 @@
+/**
+ * Bottle inventory status bar shown in the HUD.
+ * @extends DrawableObject
+ */
 class BottleStatusbar extends DrawableObject {
 
     IMAGES = [
@@ -12,6 +16,9 @@ class BottleStatusbar extends DrawableObject {
     percentage = 0;
 
 
+    /**
+     * Creates and positions the bottle status bar.
+     */
     constructor() {
         super();
         this.loadImages(this.IMAGES);
@@ -22,12 +29,21 @@ class BottleStatusbar extends DrawableObject {
         this.setPercentage(0);
     }
 
+    /**
+     * Updates the bar fill percentage and displayed sprite.
+     * @param {number} percentage Fill amount from 0 to 100.
+     * @returns {void}
+     */
     setPercentage(percentage) {
         this.percentage = percentage;
         let path = this.IMAGES[this.resolveImageIndex()];
         this.img = this.imageCache[path];
     }
     
+    /**
+     * Resolves the sprite index for the current percentage.
+     * @returns {number}
+     */
     resolveImageIndex() {
         return Math.min(Math.ceil(this.percentage / 20), 5);
     }

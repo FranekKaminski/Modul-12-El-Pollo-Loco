@@ -1,3 +1,7 @@
+/**
+ * Health status bar shown in the HUD.
+ * @extends DrawableObject
+ */
 class Statusbar extends DrawableObject {
 
     IMAGES = [
@@ -12,6 +16,9 @@ class Statusbar extends DrawableObject {
     percentage = 100;
 
 
+    /**
+     * Creates and positions the health status bar.
+     */
     constructor() {
         super();
         this.loadImages(this.IMAGES);
@@ -22,12 +29,21 @@ class Statusbar extends DrawableObject {
         this.setPercentage(100);
     }
 
+    /**
+     * Updates the bar fill percentage and displayed sprite.
+     * @param {number} percentage Fill amount from 0 to 100.
+     * @returns {void}
+     */
     setPercentage(percentage) {
         this.percentage = percentage;
         let path = this.IMAGES[this.resolveImageIndex()];
         this.img = this.imageCache[path];
     }
     
+    /**
+     * Resolves the sprite index for the current percentage.
+     * @returns {number}
+     */
     resolveImageIndex() {
         const thresholds = [100, 80, 60, 40, 20];
         for (let i = 0; i < thresholds.length; i++) {
@@ -38,6 +54,11 @@ class Statusbar extends DrawableObject {
         return 0;
     }
 
+    /**
+     * Checks whether percentage is above a threshold.
+     * @param {number} threshold Threshold value.
+     * @returns {boolean}
+     */
     isAboveThreshold(threshold) {
         if (threshold === 100) {
             return this.percentage === 100;

@@ -1,3 +1,7 @@
+/**
+ * Collectible bottle object that can be used as throwable ammo.
+ * @extends MovableObject
+ */
 class Bottle extends MovableObject {
     width = 60;
     height = 60;
@@ -10,6 +14,9 @@ class Bottle extends MovableObject {
     BOTTLE_IMAGE = ["img/6_salsa_bottle/salsa_bottle.png"];
     collected = false;
 
+    /**
+     * Creates a bottle at a random horizontal world position.
+     */
     constructor() {
         super().loadImage(this.BOTTLE_IMAGE[0]);
         this.loadImages(this.BOTTLE_IMAGE);

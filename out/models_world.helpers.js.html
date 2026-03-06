@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/world.helpers.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/world.helpers.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Returns whether a dead enemy should no longer be rendered.
+ * @param {MovableObject} enemy Enemy instance.
+ * @returns {boolean}
+ */
+World.prototype.shouldHideEnemy = function(enemy) {
+    if (enemy instanceof Endboss) {
+        return false;
+    }
+    if (typeof enemy.shouldDisappear === "function") {
+        return enemy.shouldDisappear();
+    }
+    return enemy.isDead();
+};
+
+/**
+ * Adds a list of drawable objects to the map.
+ * @param {DrawableObject[]} objects Objects to render.
+ * @returns {void}
+ */
+World.prototype.addObjectsToMap = function(objects) {
+    objects.forEach(o => {
+        this.addToMap(o);
+    });
+};
+
+/**
+ * Draws one object on the map and handles mirrored rendering.
+ * @param {DrawableObject} mo Object to render.
+ * @returns {void}
+ */
+World.prototype.addToMap = function(mo) {
+    if (mo.otherDirection) {
+        this.flipImage(mo);
+    }
+
+    mo.draw(this.ctx);
+    mo.drawFrame(this.ctx);
+
+    if (mo.otherDirection) {
+        this.flipImageBack(mo);
+    }
+};
+
+/**
+ * Applies canvas transform to draw mirrored sprites.
+ * @param {DrawableObject} mo Object that should be mirrored.
+ * @returns {void}
+ */
+World.prototype.flipImage = function(mo) {
+    this.ctx.save();
+    this.ctx.translate(mo.width, 0);
+    this.ctx.scale(-1, 1);
+    mo.x = mo.x * -1;
+};
+
+/**
+ * Restores canvas transform after mirrored drawing.
+ * @param {DrawableObject} mo Object that was mirrored.
+ * @returns {void}
+ */
+World.prototype.flipImageBack = function(mo) {
+    mo.x = mo.x * -1;
+    this.ctx.restore();
+};
+
+/**
+ * Checks whether character is stomping an enemy from above.
+ * @param {MovableObject} enemy Enemy instance.
+ * @returns {boolean}
+ */
+World.prototype.isCharacterJumpingOnEnemy = function(enemy) {
+    const stompBounds = this.getStompBounds(enemy);
+    const isFalling = this.character.speedY &lt; 0;
+    const horizontalOverlap = stompBounds.characterRight > stompBounds.enemyLeft
+        &amp;&amp; stompBounds.characterLeft &lt; stompBounds.enemyRight;
+    const verticalOverlap = stompBounds.characterBottom >= stompBounds.enemyTop - 8
+        &amp;&amp; stompBounds.characterBottom &lt;= stompBounds.enemyMiddleY;
+    return isFalling &amp;&amp; horizontalOverlap &amp;&amp; verticalOverlap;
+};
+
+/**
+ * Computes collision bounds used for stomp checks.
+ * @param {MovableObject} enemy Enemy instance.
+ * @returns {{characterLeft:number, characterRight:number, characterBottom:number, enemyLeft:number, enemyRight:number, enemyTop:number, enemyMiddleY:number}}
+ */
+World.prototype.getStompBounds = function(enemy) {
+    return {
+        characterLeft: this.character.x + this.character.offset.left,
+        characterRight: this.character.x + this.character.width - this.character.offset.right,
+        characterBottom: this.character.y + this.character.height - this.character.offset.bottom,
+        enemyLeft: enemy.x + enemy.offset.left - 10,
+        enemyRight: enemy.x + enemy.width - enemy.offset.right + 10,
+        enemyTop: enemy.y + enemy.offset.top,
+        enemyMiddleY: enemy.y + enemy.height * 0.45
+    };
+};
+
+/**
+ * Checks whether enemy is a chicken-type enemy.
+ * @param {MovableObject} enemy Enemy instance.
+ * @returns {boolean}
+ */
+World.prototype.isChickenEnemy = function(enemy) {
+    return enemy instanceof Chicken || (typeof SmallChicken !== "undefined" &amp;&amp; enemy instanceof SmallChicken);
+};
+
+/**
+ * Kills a chicken enemy and plays death sound.
+ * @param {MovableObject} enemy Enemy instance.
+ * @returns {void}
+ */
+World.prototype.squashEnemy = function(enemy) {
+    if (typeof enemy.markAsDead === "function") {
+        enemy.markAsDead();
+    } else {
+        enemy.energy = 0;
+    }
+    this.playSound(this.chickenDeadSound);
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BackgroundObject.html">BackgroundObject</a></li><li><a href="Bottle.html">Bottle</a></li><li><a href="BottleStatusbar.html">BottleStatusbar</a></li><li><a href="Character.html">Character</a></li><li><a href="Chicken.html">Chicken</a></li><li><a href="Cloud.html">Cloud</a></li><li><a href="Coin.html">Coin</a></li><li><a href="CoinStatusbar.html">CoinStatusbar</a></li><li><a href="DrawableObject.html">DrawableObject</a></li><li><a href="Endboss.html">Endboss</a></li><li><a href="EndbossStatusbar.html">EndbossStatusbar</a></li><li><a href="Keyboard.html">Keyboard</a></li><li><a href="Level.html">Level</a></li><li><a href="MovableObject.html">MovableObject</a></li><li><a href="SmallChicken.html">SmallChicken</a></li><li><a href="StartScreen.html">StartScreen</a></li><li><a href="Statusbar.html">Statusbar</a></li><li><a href="ThrowableObject.html">ThrowableObject</a></li><li><a href="World.html">World</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createLevel1">createLevel1</a></li><li><a href="global.html#detectTouchDevice">detectTouchDevice</a></li><li><a href="global.html#getMobileUIElements">getMobileUIElements</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isPortraitMode">isPortraitMode</a></li><li><a href="global.html#resetLevel1">resetLevel1</a></li><li><a href="global.html#restartGameWithoutReload">restartGameWithoutReload</a></li><li><a href="global.html#setGameVolume">setGameVolume</a></li><li><a href="global.html#setKeyboardState">setKeyboardState</a></li><li><a href="global.html#setupWorld">setupWorld</a></li><li><a href="global.html#updateMobileGameplayUI">updateMobileGameplayUI</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Mar 06 2026 16:08:33 GMT+0100 (Central European Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

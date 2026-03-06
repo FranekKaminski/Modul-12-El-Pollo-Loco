@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/world.class.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/world.class.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Central game orchestrator that manages entities, collisions and rendering.
+ */
+class World {
+    character = new Character();
+    level = level1;
+    canvas;
+    ctx;
+    keyboard;
+    camera_x = 0;
+    statusbar = new Statusbar();
+    coinStatusbar = new CoinStatusbar();
+    bottleStatusbar = new BottleStatusbar();
+    endbossStatusbar;
+    startScreen = new StartScreen();
+    gameStarted = false;
+    throwableObjects = [];
+    collectedCoins = 0;
+    collectedBottles = 0;
+    collectSound = new Audio("./audio/collectibles/collectSound.wav");
+    bottleCollectSound = new Audio("./audio/collectibles/bottleCollectSound.wav");
+    buyCoinSound = new Audio("./audio/buycoin/buycoin.wav");
+    endbossApproachSound = new Audio("./audio/endboss/endbossApproach.wav");
+    gameStartSound = new Audio("./audio/game/gameStart.mp3");
+    bottleBreakSound = new Audio("./audio/throwable/bottleBreak.mp3");
+    chickenDeadSound = new Audio("./audio/chicken/chickenDead.mp3");
+    endbossApproachPlayed = false;
+    gameOver = false;
+    destroyed = false;
+    throwKeyLocked = false;
+    exchangeKeyLocked = false;
+
+    /**
+     * @param {HTMLCanvasElement} canvas Game canvas element.
+     * @param {Keyboard} keyboard Keyboard state container.
+     */
+    constructor(canvas, keyboard) {
+        this.ctx = canvas.getContext("2d");
+        this.canvas = canvas;
+        this.keyboard = keyboard;
+        this.endbossStatusbar = new EndbossStatusbar(this.level.enemies[this.level.enemies.length - 1]);
+        this.registerAudioAssets();
+        this.draw();
+        this.setWorld();
+        this.run();
+    }
+
+    /**
+     * Registers world-level audio in global volume handling.
+     * @returns {void}
+     */
+    registerAudioAssets() {
+        if (window.registerGameAudio) {
+            window.registerGameAudio(this.collectSound);
+            window.registerGameAudio(this.bottleCollectSound);
+            window.registerGameAudio(this.buyCoinSound);
+            window.registerGameAudio(this.endbossApproachSound);
+            window.registerGameAudio(this.gameStartSound);
+            window.registerGameAudio(this.bottleBreakSound);
+            window.registerGameAudio(this.chickenDeadSound);
+        }
+    }
+
+    applyCurrentVolume(sound) {
+        if (window.getGameVolume) {
+            sound.volume = window.getGameVolume();
+            sound.muted = sound.volume === 0;
+        }
+    }
+
+    /**
+     * Links world references to child entities.
+     * @returns {void}
+     */
+    setWorld() {
+        this.character.world = this;
+        this.level.enemies.forEach(enemy => {
+            enemy.world = this;
+        });
+    }
+
+    /**
+     * Starts active gameplay from the start screen.
+     * @returns {void}
+     */
+    startGame() {
+        this.gameStarted = true;
+        this.gameOver = false;
+        this.character.idleSince = Date.now();
+        this.playSound(this.gameStartSound);
+    }
+
+    /**
+     * Marks game as lost and shows lose overlay.
+     * @returns {void}
+     */
+    triggerGameOver() {
+        if (this.gameOver) {
+            return;
+        }
+        this.gameOver = true;
+        this.gameStarted = false;
+        this.character.stopSound(this.character.walking_sound);
+        this.character.stopSound(this.character.snoring_sound);
+        if (window.showGameOverOverlay) {
+            window.showGameOverOverlay();
+        }
+    }
+
+    /**
+     * Marks game as won and shows win overlay.
+     * @returns {void}
+     */
+    triggerGameWon() {
+        if (this.gameOver) {
+            return;
+        }
+        this.gameOver = true;
+        this.gameStarted = false;
+        this.character.stopSound(this.character.walking_sound);
+        this.character.stopSound(this.character.snoring_sound);
+        if (window.showGameWonOverlay) {
+            window.showGameWonOverlay();
+        }
+    }
+
+    /**
+     * Starts the main game tick loop.
+     * @returns {void}
+     */
+    run() {
+        setInterval(() => {
+            if (this.destroyed) {
+                return;
+            }
+            if (this.gameStarted) {
+                this.runGameTick();
+            }
+        }, 1000 / 60);
+    }
+
+    /**
+     * Cleans up world runtime state for restart.
+     * @returns {void}
+     */
+    destroy() {
+        this.destroyed = true;
+        this.gameStarted = false;
+        this.gameOver = true;
+        this.character.stopSound(this.character.walking_sound);
+        this.character.stopSound(this.character.snoring_sound);
+    }
+
+    /**
+     * Executes one gameplay tick.
+     * @returns {void}
+     */
+    runGameTick() {
+        this.checkCollisions();
+        this.checkThrowObjects();
+        this.checkCoinBottleExchange();
+        if (this.character.isDead()) {
+            this.triggerGameOver();
+        }
+    }
+
+    playSound(sound) {
+        this.applyCurrentVolume(sound);
+        sound.currentTime = 0;
+        sound.play().catch(() => {});
+    }
+
+    isObjectVisible(mo) {
+        let viewportLeft = -this.camera_x;
+        let viewportRight = viewportLeft + this.canvas.width;
+        let objectRight = mo.x + mo.width;
+        return objectRight >= viewportLeft &amp;&amp; mo.x &lt;= viewportRight;
+    }
+
+    checkThrowObjects() {
+        if (!this.keyboard.D) {
+            this.throwKeyLocked = false;
+            return;
+        }
+
+        if (this.throwKeyLocked || this.collectedBottles &lt;= 0) {
+            return;
+        }
+
+        this.throwBottle();
+        this.throwKeyLocked = true;
+    }
+
+    /**
+     * Spawns a throwable bottle and updates inventory.
+     * @returns {void}
+     */
+    throwBottle() {
+        let bottle = new ThrowableObject(this.character.x + 100, this.character.y + 50, this.character.otherDirection);
+        bottle.world = this;
+        this.throwableObjects.push(bottle);
+        this.collectedBottles--;
+        this.updateBottleStatusbar();
+    }
+
+    updateBottleStatusbar() {
+        let bottlePercentage = (this.collectedBottles / this.level.bottles.length) * 100;
+        this.bottleStatusbar.setPercentage(bottlePercentage);
+    }
+
+    checkCoinBottleExchange() {
+        if (!this.keyboard.B) {
+            this.exchangeKeyLocked = false;
+            return;
+        }
+
+        if (this.exchangeKeyLocked || !this.canExchangeCoinForBottle()) {
+            return;
+        }
+        this.exchangeCoinForBottle();
+        this.lockExchangeKey();
+    }
+
+    canExchangeCoinForBottle() {
+        return this.collectedCoins > 0 &amp;&amp; this.collectedBottles &lt; this.level.bottles.length;
+    }
+
+    exchangeCoinForBottle() {
+        this.collectedCoins--;
+        this.collectedBottles++;
+        this.playSound(this.buyCoinSound);
+        this.updateCoinStatusbar();
+        this.updateBottleStatusbar();
+    }
+
+    lockExchangeKey() {
+        this.exchangeKeyLocked = true;
+    }
+
+    updateCoinStatusbar() {
+        let coinPercentage = (this.collectedCoins / this.level.coins.length) * 100;
+        this.coinStatusbar.setPercentage(coinPercentage);
+    }
+
+    /**
+     * Runs all world collision checks.
+     * @returns {void}
+     */
+    checkCollisions() {
+        this.checkEnemyCollisions();
+        this.checkCoinCollisions();
+        this.checkBottleCollisions();
+        this.checkThrowableEnemyCollisions();
+    }
+
+    checkEnemyCollisions() {
+        this.level.enemies.forEach((enemy) => {
+            if (enemy.isDead()) {
+                return;
+            }
+            if (this.isChickenEnemy(enemy) &amp;&amp; this.isCharacterJumpingOnEnemy(enemy)) {
+                this.squashEnemy(enemy);
+                return;
+            }
+            this.applyEnemyContactDamage(enemy);
+        });
+    }
+
+    applyEnemyContactDamage(enemy) {
+        if (this.character.isColliding(enemy) &amp;&amp; this.character.canTakeDamage(1000)) {
+            this.character.hit(10);
+            this.statusbar.setPercentage(this.character.energy);
+        }
+    }
+
+    checkCoinCollisions() {
+        this.level.coins.forEach((coin) => {
+            if (this.character.isColliding(coin) &amp;&amp; !coin.collected) {
+                this.collectCoin(coin);
+            }
+        });
+    }
+
+    collectCoin(coin) {
+        this.collectedCoins++;
+        coin.collected = true;
+        this.playSound(this.collectSound);
+        this.updateCoinStatusbar();
+    }
+
+    checkBottleCollisions() {
+        this.level.bottles.forEach((bottle) => {
+            if (this.character.isColliding(bottle) &amp;&amp; !bottle.collected) {
+                this.collectBottle(bottle);
+            }
+        });
+    }
+
+    collectBottle(bottle) {
+        this.collectedBottles++;
+        bottle.collected = true;
+        this.playSound(this.bottleCollectSound);
+        this.updateBottleStatusbar();
+    }
+
+    /**
+     * Handles collisions between thrown bottles and enemies.
+     * @returns {void}
+     */
+    checkThrowableEnemyCollisions() {
+        this.throwableObjects.forEach((throwable) => {
+            this.level.enemies.forEach((enemy) => {
+                if (throwable.hasHit) {
+                    return;
+                }
+                const hasCollision = enemy instanceof Endboss
+                    ? this.isThrowableCollidingWithEndboss(throwable, enemy)
+                    : throwable.isColliding(enemy);
+                if (hasCollision) {
+                    this.handleThrowableHitEnemy(throwable, enemy);
+                }
+            });
+        });
+    }
+
+    isThrowableCollidingWithEndboss(throwable, endboss) {
+        const throwableBounds = {
+            left: throwable.x + 28,
+            right: throwable.x + throwable.width - 28,
+            top: throwable.y + 24,
+            bottom: throwable.y + throwable.height - 24
+        };
+
+        const endbossBounds = {
+            left: endboss.x + endboss.offset.left + 20,
+            right: endboss.x + endboss.width - endboss.offset.right - 20,
+            top: endboss.y + endboss.offset.top + 12,
+            bottom: endboss.y + endboss.height - endboss.offset.bottom - 10
+        };
+
+        return throwableBounds.right > endbossBounds.left
+            &amp;&amp; throwableBounds.left &lt; endbossBounds.right
+            &amp;&amp; throwableBounds.bottom > endbossBounds.top
+            &amp;&amp; throwableBounds.top &lt; endbossBounds.bottom;
+    }
+
+    handleThrowableHitEnemy(throwable, enemy) {
+        enemy.hit();
+        throwable.markAsHit();
+        this.playSound(this.bottleBreakSound);
+        this.handleEnemyDeathByBottle(enemy);
+        this.updateEndbossStatus(enemy);
+    }
+
+    handleEnemyDeathByBottle(enemy) {
+        if (enemy.isDead() &amp;&amp; this.isChickenEnemy(enemy)) {
+            this.playSound(this.chickenDeadSound);
+        }
+    }
+
+    updateEndbossStatus(enemy) {
+        if (!(enemy instanceof Endboss)) {
+            return;
+        }
+        let endbossPercentage = (enemy.energy / 5) * 100;
+        this.endbossStatusbar.setPercentage(endbossPercentage);
+        if (enemy.isDead()) {
+            // Let the dead sprite sequence play before showing the win overlay.
+            setTimeout(() => {
+                if (enemy.isDead() &amp;&amp; !this.gameOver) {
+                    this.triggerGameWon();
+                }
+            }, 650);
+        }
+    }
+
+    /**
+     * Main render loop for menu/game scenes.
+     * @returns {void}
+     */
+    draw() {
+        if (this.destroyed) {
+            return;
+        }
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (!this.gameStarted &amp;&amp; !this.gameOver) {
+            this.addToMap(this.startScreen);
+        } else {
+            this.drawActiveGameScene();
+        }
+
+        requestAnimationFrame(() => this.draw());
+    }
+
+    drawActiveGameScene() {
+        this.drawWorldBackground();
+        this.drawHud();
+        this.drawWorldEntities();
+        this.ctx.translate(-this.camera_x, 0);
+    }
+
+    drawWorldBackground() {
+        this.ctx.translate(this.camera_x, 0);
+        this.addObjectsToMap(this.level.backgroundObjects);
+        this.addObjectsToMap(this.level.clouds);
+    }
+
+    drawHud() {
+        this.ctx.translate(-this.camera_x, 0);
+        this.addToMap(this.statusbar);
+        this.addToMap(this.coinStatusbar);
+        this.addToMap(this.bottleStatusbar);
+        this.ctx.translate(this.camera_x, 0);
+    }
+
+    drawWorldEntities() {
+        this.addToMap(this.character);
+        this.addEnemiesToMap();
+        this.addToMap(this.endbossStatusbar);
+        this.addCoinsToMap();
+        this.addBottlesToMap();
+        this.addThrowablestoMap();
+    }
+
+    addCoinsToMap() {
+        const now = Date.now();
+        this.level.coins.forEach((coin) => {
+            if (!coin.collected) {
+                if (!coin.lastAnimationUpdate) {
+                    coin.lastAnimationUpdate = now;
+                }
+                if (now - coin.lastAnimationUpdate >= 180) {
+                    coin.playAnimation(coin.COIN_IMAGE);
+                    coin.lastAnimationUpdate = now;
+                }
+                this.addToMap(coin);
+            }
+        });
+    }
+
+    addBottlesToMap() {
+        this.level.bottles.forEach((bottle) => {
+            if (!bottle.collected) {
+                this.addToMap(bottle);
+            }
+        });
+    }
+
+    addEnemiesToMap() {
+        this.level.enemies.forEach((enemy) => {
+            if (enemy instanceof Endboss &amp;&amp; !this.endbossApproachPlayed &amp;&amp; this.isObjectVisible(enemy)) {
+                this.playSound(this.endbossApproachSound);
+                this.endbossApproachPlayed = true;
+            }
+            if (!this.shouldHideEnemy(enemy)) {
+                this.addToMap(enemy);
+            }
+        });
+    }
+
+    addThrowablestoMap() {
+        this.throwableObjects.forEach((throwable) => {
+            if (!throwable.splashFinished) {
+                this.addToMap(throwable);
+            }
+        });
+    }
+
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BackgroundObject.html">BackgroundObject</a></li><li><a href="Bottle.html">Bottle</a></li><li><a href="BottleStatusbar.html">BottleStatusbar</a></li><li><a href="Character.html">Character</a></li><li><a href="Chicken.html">Chicken</a></li><li><a href="Cloud.html">Cloud</a></li><li><a href="Coin.html">Coin</a></li><li><a href="CoinStatusbar.html">CoinStatusbar</a></li><li><a href="DrawableObject.html">DrawableObject</a></li><li><a href="Endboss.html">Endboss</a></li><li><a href="EndbossStatusbar.html">EndbossStatusbar</a></li><li><a href="Keyboard.html">Keyboard</a></li><li><a href="Level.html">Level</a></li><li><a href="MovableObject.html">MovableObject</a></li><li><a href="SmallChicken.html">SmallChicken</a></li><li><a href="StartScreen.html">StartScreen</a></li><li><a href="Statusbar.html">Statusbar</a></li><li><a href="ThrowableObject.html">ThrowableObject</a></li><li><a href="World.html">World</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createLevel1">createLevel1</a></li><li><a href="global.html#detectTouchDevice">detectTouchDevice</a></li><li><a href="global.html#getMobileUIElements">getMobileUIElements</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isPortraitMode">isPortraitMode</a></li><li><a href="global.html#resetLevel1">resetLevel1</a></li><li><a href="global.html#restartGameWithoutReload">restartGameWithoutReload</a></li><li><a href="global.html#setGameVolume">setGameVolume</a></li><li><a href="global.html#setKeyboardState">setKeyboardState</a></li><li><a href="global.html#setupWorld">setupWorld</a></li><li><a href="global.html#updateMobileGameplayUI">updateMobileGameplayUI</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Mar 06 2026 16:08:33 GMT+0100 (Central European Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

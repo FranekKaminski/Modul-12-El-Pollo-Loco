@@ -1,3 +1,6 @@
+/**
+ * Central game orchestrator that manages entities, collisions and rendering.
+ */
 class World {
     character = new Character();
     level = level1;
@@ -16,15 +19,21 @@ class World {
     collectedBottles = 0;
     collectSound = new Audio("./audio/collectibles/collectSound.wav");
     bottleCollectSound = new Audio("./audio/collectibles/bottleCollectSound.wav");
+    buyCoinSound = new Audio("./audio/buycoin/buycoin.wav");
     endbossApproachSound = new Audio("./audio/endboss/endbossApproach.wav");
     gameStartSound = new Audio("./audio/game/gameStart.mp3");
     bottleBreakSound = new Audio("./audio/throwable/bottleBreak.mp3");
     chickenDeadSound = new Audio("./audio/chicken/chickenDead.mp3");
     endbossApproachPlayed = false;
     gameOver = false;
+    destroyed = false;
     throwKeyLocked = false;
     exchangeKeyLocked = false;
 
+    /**
+     * @param {HTMLCanvasElement} canvas Game canvas element.
+     * @param {Keyboard} keyboard Keyboard state container.
+     */
     constructor(canvas, keyboard) {
         this.ctx = canvas.getContext("2d");
         this.canvas = canvas;
@@ -36,10 +45,15 @@ class World {
         this.run();
     }
 
+    /**
+     * Registers world-level audio in global volume handling.
+     * @returns {void}
+     */
     registerAudioAssets() {
         if (window.registerGameAudio) {
             window.registerGameAudio(this.collectSound);
             window.registerGameAudio(this.bottleCollectSound);
+            window.registerGameAudio(this.buyCoinSound);
             window.registerGameAudio(this.endbossApproachSound);
             window.registerGameAudio(this.gameStartSound);
             window.registerGameAudio(this.bottleBreakSound);
@@ -54,6 +68,10 @@ class World {
         }
     }
 
+    /**
+     * Links world references to child entities.
+     * @returns {void}
+     */
     setWorld() {
         this.character.world = this;
         this.level.enemies.forEach(enemy => {
@@ -61,6 +79,10 @@ class World {
         });
     }
 
+    /**
+     * Starts active gameplay from the start screen.
+     * @returns {void}
+     */
     startGame() {
         this.gameStarted = true;
         this.gameOver = false;
@@ -68,6 +90,10 @@ class World {
         this.playSound(this.gameStartSound);
     }
 
+    /**
+     * Marks game as lost and shows lose overlay.
+     * @returns {void}
+     */
     triggerGameOver() {
         if (this.gameOver) {
             return;
@@ -81,6 +107,10 @@ class World {
         }
     }
 
+    /**
+     * Marks game as won and shows win overlay.
+     * @returns {void}
+     */
     triggerGameWon() {
         if (this.gameOver) {
             return;
@@ -94,14 +124,37 @@ class World {
         }
     }
 
+    /**
+     * Starts the main game tick loop.
+     * @returns {void}
+     */
     run() {
         setInterval(() => {
+            if (this.destroyed) {
+                return;
+            }
             if (this.gameStarted) {
                 this.runGameTick();
             }
         }, 1000 / 60);
     }
 
+    /**
+     * Cleans up world runtime state for restart.
+     * @returns {void}
+     */
+    destroy() {
+        this.destroyed = true;
+        this.gameStarted = false;
+        this.gameOver = true;
+        this.character.stopSound(this.character.walking_sound);
+        this.character.stopSound(this.character.snoring_sound);
+    }
+
+    /**
+     * Executes one gameplay tick.
+     * @returns {void}
+     */
     runGameTick() {
         this.checkCollisions();
         this.checkThrowObjects();
@@ -138,6 +191,10 @@ class World {
         this.throwKeyLocked = true;
     }
 
+    /**
+     * Spawns a throwable bottle and updates inventory.
+     * @returns {void}
+     */
     throwBottle() {
         let bottle = new ThrowableObject(this.character.x + 100, this.character.y + 50, this.character.otherDirection);
         bottle.world = this;
@@ -171,6 +228,7 @@ class World {
     exchangeCoinForBottle() {
         this.collectedCoins--;
         this.collectedBottles++;
+        this.playSound(this.buyCoinSound);
         this.updateCoinStatusbar();
         this.updateBottleStatusbar();
     }
@@ -184,6 +242,10 @@ class World {
         this.coinStatusbar.setPercentage(coinPercentage);
     }
 
+    /**
+     * Runs all world collision checks.
+     * @returns {void}
+     */
     checkCollisions() {
         this.checkEnemyCollisions();
         this.checkCoinCollisions();
@@ -241,19 +303,50 @@ class World {
         this.updateBottleStatusbar();
     }
 
+    /**
+     * Handles collisions between thrown bottles and enemies.
+     * @returns {void}
+     */
     checkThrowableEnemyCollisions() {
         this.throwableObjects.forEach((throwable) => {
             this.level.enemies.forEach((enemy) => {
-                if (!throwable.hasHit && throwable.isColliding(enemy)) {
+                if (throwable.hasHit) {
+                    return;
+                }
+                const hasCollision = enemy instanceof Endboss
+                    ? this.isThrowableCollidingWithEndboss(throwable, enemy)
+                    : throwable.isColliding(enemy);
+                if (hasCollision) {
                     this.handleThrowableHitEnemy(throwable, enemy);
                 }
             });
         });
     }
 
+    isThrowableCollidingWithEndboss(throwable, endboss) {
+        const throwableBounds = {
+            left: throwable.x + 28,
+            right: throwable.x + throwable.width - 28,
+            top: throwable.y + 24,
+            bottom: throwable.y + throwable.height - 24
+        };
+
+        const endbossBounds = {
+            left: endboss.x + endboss.offset.left + 20,
+            right: endboss.x + endboss.width - endboss.offset.right - 20,
+            top: endboss.y + endboss.offset.top + 12,
+            bottom: endboss.y + endboss.height - endboss.offset.bottom - 10
+        };
+
+        return throwableBounds.right > endbossBounds.left
+            && throwableBounds.left < endbossBounds.right
+            && throwableBounds.bottom > endbossBounds.top
+            && throwableBounds.top < endbossBounds.bottom;
+    }
+
     handleThrowableHitEnemy(throwable, enemy) {
         enemy.hit();
-        throwable.hasHit = true;
+        throwable.markAsHit();
         this.playSound(this.bottleBreakSound);
         this.handleEnemyDeathByBottle(enemy);
         this.updateEndbossStatus(enemy);
@@ -272,11 +365,23 @@ class World {
         let endbossPercentage = (enemy.energy / 5) * 100;
         this.endbossStatusbar.setPercentage(endbossPercentage);
         if (enemy.isDead()) {
-            this.triggerGameWon();
+            // Let the dead sprite sequence play before showing the win overlay.
+            setTimeout(() => {
+                if (enemy.isDead() && !this.gameOver) {
+                    this.triggerGameWon();
+                }
+            }, 650);
         }
     }
 
+    /**
+     * Main render loop for menu/game scenes.
+     * @returns {void}
+     */
     draw() {
+        if (this.destroyed) {
+            return;
+        }
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
         if (!this.gameStarted && !this.gameOver) {
@@ -319,9 +424,16 @@ class World {
     }
 
     addCoinsToMap() {
+        const now = Date.now();
         this.level.coins.forEach((coin) => {
             if (!coin.collected) {
-                coin.playAnimation(coin.COIN_IMAGE);
+                if (!coin.lastAnimationUpdate) {
+                    coin.lastAnimationUpdate = now;
+                }
+                if (now - coin.lastAnimationUpdate >= 180) {
+                    coin.playAnimation(coin.COIN_IMAGE);
+                    coin.lastAnimationUpdate = now;
+                }
                 this.addToMap(coin);
             }
         });
@@ -349,7 +461,7 @@ class World {
 
     addThrowablestoMap() {
         this.throwableObjects.forEach((throwable) => {
-            if (!throwable.hasHit) {
+            if (!throwable.splashFinished) {
                 this.addToMap(throwable);
             }
         });

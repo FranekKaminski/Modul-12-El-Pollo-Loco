@@ -1,0 +1,17 @@
+{
+    "source": {
+        "include": [
+            "./js",
+            "./models",
+            "./levels"
+        ],
+        "includePattern": ".+\\.js(doc|x)?$",
+        "excludePattern": "(^|/)_(?!_).*"
+    },
+    "opts": {
+        "destination": "./out",
+        "recurse": true,
+        "encoding": "utf8"
+    },
+    "plugins": []
+}

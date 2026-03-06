@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: levels/level1.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: levels/level1.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * Creates a fresh instance of level 1 with all entities.
+ * @returns {Level}
+ */
+function createLevel1() {
+    return new Level(
+        [
+            new Chicken(400),
+            new Chicken(800),
+            new SmallChicken(600),
+            new Chicken(1200),
+            new SmallChicken(1400),
+            new Chicken(1600),
+            new Chicken(2000),
+            new Endboss()
+        ],
+        [
+            new Cloud(),
+        ],
+        [
+            new BackgroundObject("./img/5_background/layers/air.png", -720),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", -720),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", -720),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", -720),
+            new BackgroundObject("./img/5_background/layers/air.png", 0),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/1.png", 0),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/1.png", 0),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/1.png", 0),
+            new BackgroundObject("./img/5_background/layers/air.png", 720),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", 720),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", 720),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", 720),
+            new BackgroundObject("./img/5_background/layers/air.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/1.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/1.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/1.png", 720 * 2),
+            new BackgroundObject("./img/5_background/layers/air.png", 720 * 3),
+            new BackgroundObject("./img/5_background/layers/3_third_layer/2.png", 720 * 3),
+            new BackgroundObject("./img/5_background/layers/2_second_layer/2.png", 720 * 3),
+            new BackgroundObject("./img/5_background/layers/1_first_layer/2.png", 720 * 3)
+        ],
+        [
+            new Coin(),
+            new Coin(),
+            new Coin(),
+            new Coin(),
+            new Coin(),
+        ],
+        [
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+            new Bottle(),
+        ]
+    );
+}
+
+let level1 = createLevel1();
+
+/**
+ * Rebuilds level 1 to reset all entities and collectibles.
+ * @returns {Level}
+ */
+function resetLevel1() {
+    level1 = createLevel1();
+    return level1;
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BackgroundObject.html">BackgroundObject</a></li><li><a href="Bottle.html">Bottle</a></li><li><a href="BottleStatusbar.html">BottleStatusbar</a></li><li><a href="Character.html">Character</a></li><li><a href="Chicken.html">Chicken</a></li><li><a href="Cloud.html">Cloud</a></li><li><a href="Coin.html">Coin</a></li><li><a href="CoinStatusbar.html">CoinStatusbar</a></li><li><a href="DrawableObject.html">DrawableObject</a></li><li><a href="Endboss.html">Endboss</a></li><li><a href="EndbossStatusbar.html">EndbossStatusbar</a></li><li><a href="Keyboard.html">Keyboard</a></li><li><a href="Level.html">Level</a></li><li><a href="MovableObject.html">MovableObject</a></li><li><a href="SmallChicken.html">SmallChicken</a></li><li><a href="StartScreen.html">StartScreen</a></li><li><a href="Statusbar.html">Statusbar</a></li><li><a href="ThrowableObject.html">ThrowableObject</a></li><li><a href="World.html">World</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createLevel1">createLevel1</a></li><li><a href="global.html#detectTouchDevice">detectTouchDevice</a></li><li><a href="global.html#getMobileUIElements">getMobileUIElements</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#isPortraitMode">isPortraitMode</a></li><li><a href="global.html#resetLevel1">resetLevel1</a></li><li><a href="global.html#restartGameWithoutReload">restartGameWithoutReload</a></li><li><a href="global.html#setGameVolume">setGameVolume</a></li><li><a href="global.html#setKeyboardState">setKeyboardState</a></li><li><a href="global.html#setupWorld">setupWorld</a></li><li><a href="global.html#updateMobileGameplayUI">updateMobileGameplayUI</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Mar 06 2026 16:08:33 GMT+0100 (Central European Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

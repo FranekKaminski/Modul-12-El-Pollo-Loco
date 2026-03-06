@@ -1,3 +1,7 @@
+/**
+ * Standard chicken enemy with walk and death animation states.
+ * @extends MovableObject
+ */
 class Chicken extends MovableObject {
     y = 345;
     height = 85;
@@ -20,6 +24,9 @@ class Chicken extends MovableObject {
         "./img/3_enemies_chicken/chicken_normal/2_dead/dead.png"
     ];
 
+    /**
+     * @param {number} [x] Optional start x position.
+     */
     constructor(x) {
         super().loadImage("./img/3_enemies_chicken/chicken_normal/1_walk/1_w.png");
         this.loadImages(this.IMAGES_WALKING);
@@ -31,6 +38,10 @@ class Chicken extends MovableObject {
         this.animate();
     }
 
+    /**
+     * Starts movement and animation loops.
+     * @returns {void}
+     */
     animate() {
         setInterval(() => {
             if (this.world && this.world.gameStarted && !this.isDead()) {
@@ -49,6 +60,10 @@ class Chicken extends MovableObject {
         }, 100);
     }
 
+    /**
+     * Sets the enemy as dead and stores the death timestamp.
+     * @returns {void}
+     */
     markAsDead() {
         if (this.deadAt !== null) {
             return;
@@ -57,6 +72,10 @@ class Chicken extends MovableObject {
         this.deadAt = Date.now();
     }
 
+    /**
+     * Returns true when dead enemy can be removed from rendering.
+     * @returns {boolean}
+     */
     shouldDisappear() {
         return this.deadAt !== null && Date.now() - this.deadAt >= this.DEAD_REMOVE_DELAY;
     }
