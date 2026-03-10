@@ -11,8 +11,8 @@ class SmallChicken extends MovableObject {
     offset = {
         top: 8,
         bottom: 8,
-        left: 8,
-        right: 8,
+        left: 17,
+        right: 17,
     };
     IMAGES_WALKING = [
         "./img/3_enemies_chicken/chicken_small/1_walk/1_w.png",
@@ -47,6 +47,10 @@ class SmallChicken extends MovableObject {
         this.startAnimationLoop();
     }
 
+    /**
+     * Starts the continuous movement loop.
+     * @returns {void}
+     */
     startMoveLoop() {
         setInterval(() => {
             if (this.world && this.world.gameStarted && !this.isDead()) {
@@ -55,6 +59,10 @@ class SmallChicken extends MovableObject {
         }, 1000 / 60);
     }
 
+    /**
+     * Starts the sprite animation loop.
+     * @returns {void}
+     */
     startAnimationLoop() {
         setInterval(() => {
             if (this.world && this.world.gameStarted) {

@@ -185,6 +185,10 @@ class Character extends MovableObject {
         this.startAnimationLoop();
     }
 
+    /**
+     * Starts movement and camera update loop.
+     * @returns {void}
+     */
     startMovementLoop() {
         setInterval(() => {
             if (!this.world.gameStarted) {
@@ -195,12 +199,20 @@ class Character extends MovableObject {
         }, 1000 / 60);
     }
 
+    /**
+     * Processes directional and action input each frame.
+     * @returns {void}
+     */
     updateMovement() {
         this.handleMoveRight();
         this.handleMoveLeft();
         this.handleJumpInput();
     }
 
+    /**
+     * Applies right movement input.
+     * @returns {void}
+     */
     handleMoveRight() {
         if (this.world.keyboard.RIGHT && this.x < this.world.level.level_end_x) {
             this.moveRight();
@@ -209,6 +221,10 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Applies left movement input.
+     * @returns {void}
+     */
     handleMoveLeft() {
         if (this.world.keyboard.LEFT && this.x > 0) {
             this.moveLeft();
@@ -217,16 +233,28 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Handles jump input when character is grounded.
+     * @returns {void}
+     */
     handleJumpInput() {
         if (this.world.keyboard.SPACE && !this.IsAboveGround()) {
             this.jump();
         }
     }
 
+    /**
+     * Keeps camera centered on the character.
+     * @returns {void}
+     */
     updateCameraPosition() {
         this.world.camera_x = -this.x + 100;
     }
 
+    /**
+     * Starts animation-state update loop.
+     * @returns {void}
+     */
     startAnimationLoop() {
         setInterval(() => {
             if (!this.world.gameStarted) {
@@ -236,6 +264,10 @@ class Character extends MovableObject {
         }, 100);
     }
 
+    /**
+     * Selects animation branch based on character state.
+     * @returns {void}
+     */
     updateAnimationState() {
         if (this.isDead()) {
             this.handleDeadAnimation();
@@ -248,6 +280,10 @@ class Character extends MovableObject {
         this.handleGroundOrAirAnimation();
     }
 
+    /**
+     * Plays death animation and one-time death sound.
+     * @returns {void}
+     */
     handleDeadAnimation() {
         if (!this.deadSoundPlayed) {
             this.stopSound(this.walking_sound);
@@ -258,6 +294,10 @@ class Character extends MovableObject {
         this.playAnimation(this.IMAGES_DEAD);
     }
 
+    /**
+     * Plays hurt animation and hit feedback sounds.
+     * @returns {void}
+     */
     handleHurtAnimation() {
         this.stopSound(this.walking_sound);
         this.stopSound(this.snoring_sound);
@@ -266,6 +306,10 @@ class Character extends MovableObject {
         this.playAnimation(this.IMAGES_HURT);
     }
 
+    /**
+     * Ensures hurt sound is played once per damage event.
+     * @returns {void}
+     */
     playHurtSoundOncePerHit() {
         if (this.lastHurtSoundTimestamp !== this.lastHit) {
             this.playSound(this.hurt_sound);
@@ -273,6 +317,10 @@ class Character extends MovableObject {
         }
     }
 
+    /**
+     * Routes animation to jump or ground states.
+     * @returns {void}
+     */
     handleGroundOrAirAnimation() {
         if (this.IsAboveGround()) {
             this.handleJumpAnimation();
@@ -281,6 +329,10 @@ class Character extends MovableObject {
         this.handleWalkingOrIdleAnimation();
     }
 
+    /**
+     * Plays jump animation while airborne.
+     * @returns {void}
+     */
     handleJumpAnimation() {
         this.stopSound(this.walking_sound);
         this.stopSound(this.snoring_sound);
@@ -288,6 +340,10 @@ class Character extends MovableObject {
         this.playAnimation(this.IMAGES_JUMPING);
     }
 
+    /**
+     * Chooses between walking and idle animation states.
+     * @returns {void}
+     */
     handleWalkingOrIdleAnimation() {
         if (this.world.keyboard.RIGHT || this.world.keyboard.LEFT) {
             this.handleWalkingAnimation();
@@ -296,6 +352,10 @@ class Character extends MovableObject {
         this.handleIdleAnimation();
     }
 
+    /**
+     * Plays walking animation and running audio.
+     * @returns {void}
+     */
     handleWalkingAnimation() {
         this.stopSound(this.snoring_sound);
         this.startLoop(this.walking_sound);
@@ -303,6 +363,10 @@ class Character extends MovableObject {
         this.playAnimation(this.IMAGES_WALKING);
     }
 
+    /**
+     * Plays idle/long-idle animation and snoring audio.
+     * @returns {void}
+     */
     handleIdleAnimation() {
         this.stopSound(this.walking_sound);
         if (Date.now() - this.idleSince < this.IDLE_ANIMATION_DELAY) {

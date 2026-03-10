@@ -71,6 +71,10 @@ class Endboss extends MovableObject {
         this.startAnimationLoop();
     }
 
+    /**
+     * Starts endboss movement updates.
+     * @returns {void}
+     */
     startMovementLoop() {
         setInterval(() => {
             if (!this.world || !this.world.gameStarted || this.isDead()) {
@@ -84,6 +88,10 @@ class Endboss extends MovableObject {
         }, 1000 / 60);
     }
 
+    /**
+     * Starts endboss animation-state updates.
+     * @returns {void}
+     */
     startAnimationLoop() {
         setInterval(() => {
             if (this.world && this.world.gameStarted) {

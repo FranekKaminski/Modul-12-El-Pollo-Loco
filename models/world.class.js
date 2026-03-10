@@ -61,6 +61,11 @@ class World {
         }
     }
 
+    /**
+     * Applies current global volume to a world sound effect.
+     * @param {HTMLAudioElement} sound Sound instance.
+     * @returns {void}
+     */
     applyCurrentVolume(sound) {
         if (window.getGameVolume) {
             sound.volume = window.getGameVolume();
@@ -164,33 +169,6 @@ class World {
         }
     }
 
-    playSound(sound) {
-        this.applyCurrentVolume(sound);
-        sound.currentTime = 0;
-        sound.play().catch(() => {});
-    }
-
-    isObjectVisible(mo) {
-        let viewportLeft = -this.camera_x;
-        let viewportRight = viewportLeft + this.canvas.width;
-        let objectRight = mo.x + mo.width;
-        return objectRight >= viewportLeft && mo.x <= viewportRight;
-    }
-
-    checkThrowObjects() {
-        if (!this.keyboard.D) {
-            this.throwKeyLocked = false;
-            return;
-        }
-
-        if (this.throwKeyLocked || this.collectedBottles <= 0) {
-            return;
-        }
-
-        this.throwBottle();
-        this.throwKeyLocked = true;
-    }
-
     /**
      * Spawns a throwable bottle and updates inventory.
      * @returns {void}
@@ -203,11 +181,10 @@ class World {
         this.updateBottleStatusbar();
     }
 
-    updateBottleStatusbar() {
-        let bottlePercentage = (this.collectedBottles / this.level.bottles.length) * 100;
-        this.bottleStatusbar.setPercentage(bottlePercentage);
-    }
-
+    /**
+     * Handles coin-to-bottle exchange input and locking.
+     * @returns {void}
+     */
     checkCoinBottleExchange() {
         if (!this.keyboard.B) {
             this.exchangeKeyLocked = false;
@@ -221,10 +198,18 @@ class World {
         this.lockExchangeKey();
     }
 
+    /**
+     * Returns whether a coin can currently be exchanged for a bottle.
+     * @returns {boolean}
+     */
     canExchangeCoinForBottle() {
         return this.collectedCoins > 0 && this.collectedBottles < this.level.bottles.length;
     }
 
+    /**
+     * Exchanges one coin for one bottle and updates HUD.
+     * @returns {void}
+     */
     exchangeCoinForBottle() {
         this.collectedCoins--;
         this.collectedBottles++;
@@ -233,10 +218,18 @@ class World {
         this.updateBottleStatusbar();
     }
 
+    /**
+     * Locks coin exchange until key is released.
+     * @returns {void}
+     */
     lockExchangeKey() {
         this.exchangeKeyLocked = true;
     }
 
+    /**
+     * Syncs coin status bar with collected coin count.
+     * @returns {void}
+     */
     updateCoinStatusbar() {
         let coinPercentage = (this.collectedCoins / this.level.coins.length) * 100;
         this.coinStatusbar.setPercentage(coinPercentage);
@@ -253,6 +246,10 @@ class World {
         this.checkThrowableEnemyCollisions();
     }
 
+    /**
+     * Handles character-vs-enemy interactions each frame.
+     * @returns {void}
+     */
     checkEnemyCollisions() {
         this.level.enemies.forEach((enemy) => {
             if (enemy.isDead()) {
@@ -266,6 +263,11 @@ class World {
         });
     }
 
+    /**
+     * Applies contact damage when the character touches an enemy.
+     * @param {MovableObject} enemy Enemy instance.
+     * @returns {void}
+     */
     applyEnemyContactDamage(enemy) {
         if (this.character.isColliding(enemy) && this.character.canTakeDamage(1000)) {
             this.character.hit(10);
@@ -273,6 +275,10 @@ class World {
         }
     }
 
+    /**
+     * Checks coin pickup collisions.
+     * @returns {void}
+     */
     checkCoinCollisions() {
         this.level.coins.forEach((coin) => {
             if (this.character.isColliding(coin) && !coin.collected) {
@@ -281,6 +287,11 @@ class World {
         });
     }
 
+    /**
+     * Collects a coin and updates related state.
+     * @param {Coin} coin Coin instance.
+     * @returns {void}
+     */
     collectCoin(coin) {
         this.collectedCoins++;
         coin.collected = true;
@@ -288,6 +299,10 @@ class World {
         this.updateCoinStatusbar();
     }
 
+    /**
+     * Checks bottle pickup collisions.
+     * @returns {void}
+     */
     checkBottleCollisions() {
         this.level.bottles.forEach((bottle) => {
             if (this.character.isColliding(bottle) && !bottle.collected) {
@@ -296,6 +311,11 @@ class World {
         });
     }
 
+    /**
+     * Collects a bottle and updates related state.
+     * @param {Bottle} bottle Bottle instance.
+     * @returns {void}
+     */
     collectBottle(bottle) {
         this.collectedBottles++;
         bottle.collected = true;
@@ -323,6 +343,12 @@ class World {
         });
     }
 
+    /**
+     * Uses tighter bounds for throwable collisions against the endboss.
+     * @param {ThrowableObject} throwable Thrown bottle instance.
+     * @param {Endboss} endboss Endboss instance.
+     * @returns {boolean}
+     */
     isThrowableCollidingWithEndboss(throwable, endboss) {
         const throwableBounds = {
             left: throwable.x + 28,
@@ -344,6 +370,12 @@ class World {
             && throwableBounds.top < endbossBounds.bottom;
     }
 
+    /**
+     * Applies hit effects for throwable-enemy collisions.
+     * @param {ThrowableObject} throwable Thrown bottle instance.
+     * @param {MovableObject} enemy Enemy instance.
+     * @returns {void}
+     */
     handleThrowableHitEnemy(throwable, enemy) {
         enemy.hit();
         throwable.markAsHit();
@@ -352,12 +384,22 @@ class World {
         this.updateEndbossStatus(enemy);
     }
 
+    /**
+     * Plays chicken death sound when a bottle kill is confirmed.
+     * @param {MovableObject} enemy Enemy instance.
+     * @returns {void}
+     */
     handleEnemyDeathByBottle(enemy) {
         if (enemy.isDead() && this.isChickenEnemy(enemy)) {
             this.playSound(this.chickenDeadSound);
         }
     }
 
+    /**
+     * Updates endboss health bar and triggers win state on death.
+     * @param {MovableObject} enemy Enemy instance.
+     * @returns {void}
+     */
     updateEndbossStatus(enemy) {
         if (!(enemy instanceof Endboss)) {
             return;
@@ -391,80 +433,6 @@ class World {
         }
 
         requestAnimationFrame(() => this.draw());
-    }
-
-    drawActiveGameScene() {
-        this.drawWorldBackground();
-        this.drawHud();
-        this.drawWorldEntities();
-        this.ctx.translate(-this.camera_x, 0);
-    }
-
-    drawWorldBackground() {
-        this.ctx.translate(this.camera_x, 0);
-        this.addObjectsToMap(this.level.backgroundObjects);
-        this.addObjectsToMap(this.level.clouds);
-    }
-
-    drawHud() {
-        this.ctx.translate(-this.camera_x, 0);
-        this.addToMap(this.statusbar);
-        this.addToMap(this.coinStatusbar);
-        this.addToMap(this.bottleStatusbar);
-        this.ctx.translate(this.camera_x, 0);
-    }
-
-    drawWorldEntities() {
-        this.addToMap(this.character);
-        this.addEnemiesToMap();
-        this.addToMap(this.endbossStatusbar);
-        this.addCoinsToMap();
-        this.addBottlesToMap();
-        this.addThrowablestoMap();
-    }
-
-    addCoinsToMap() {
-        const now = Date.now();
-        this.level.coins.forEach((coin) => {
-            if (!coin.collected) {
-                if (!coin.lastAnimationUpdate) {
-                    coin.lastAnimationUpdate = now;
-                }
-                if (now - coin.lastAnimationUpdate >= 180) {
-                    coin.playAnimation(coin.COIN_IMAGE);
-                    coin.lastAnimationUpdate = now;
-                }
-                this.addToMap(coin);
-            }
-        });
-    }
-
-    addBottlesToMap() {
-        this.level.bottles.forEach((bottle) => {
-            if (!bottle.collected) {
-                this.addToMap(bottle);
-            }
-        });
-    }
-
-    addEnemiesToMap() {
-        this.level.enemies.forEach((enemy) => {
-            if (enemy instanceof Endboss && !this.endbossApproachPlayed && this.isObjectVisible(enemy)) {
-                this.playSound(this.endbossApproachSound);
-                this.endbossApproachPlayed = true;
-            }
-            if (!this.shouldHideEnemy(enemy)) {
-                this.addToMap(enemy);
-            }
-        });
-    }
-
-    addThrowablestoMap() {
-        this.throwableObjects.forEach((throwable) => {
-            if (!throwable.splashFinished) {
-                this.addToMap(throwable);
-            }
-        });
     }
 
 }

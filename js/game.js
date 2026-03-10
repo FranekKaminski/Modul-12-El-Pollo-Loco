@@ -32,140 +32,21 @@ function isPortraitMode() {
     return window.innerHeight > window.innerWidth;
 }
 
-function stopHorizontalInput() {
-    keyboard.LEFT = false;
-    keyboard.RIGHT = false;
-}
-
 /**
- * Updates mobile-only gameplay controls and rotate hint.
+ * Applies current volume and mute state to one audio object.
+ * @param {HTMLAudioElement} audio Audio instance.
  * @returns {void}
  */
-function updateMobileGameplayUI() {
-    const mobileUI = getMobileUIElements();
-    const impressumButton = document.getElementById("impressumButton");
-    if (!hasMobileUIElements(mobileUI)) {
-        updateImpressumStartButtonVisibility(impressumButton);
-        return;
-    }
-    if (!isTouchDevice) {
-        hideMobileUI(mobileUI);
-        updateImpressumStartButtonVisibility(impressumButton);
-        return;
-    }
-    if (isPortraitMode()) {
-        handlePortraitMode(mobileUI);
-        updateImpressumStartButtonVisibility(impressumButton);
-        return;
-    }
-    handleLandscapeMode(mobileUI);
-    updateImpressumStartButtonVisibility(impressumButton);
-}
-
-function updateImpressumStartButtonVisibility(impressumButton = document.getElementById("impressumButton")) {
-    if (!impressumButton) {
-        return;
-    }
-    const shouldShow = isTouchDevice
-        && !isPortraitMode()
-        && world
-        && !world.gameStarted
-        && !world.gameOver;
-    impressumButton.style.display = shouldShow ? "inline-block" : "none";
-}
-
-function hasMobileUIElements(mobileUI) {
-    return !!mobileUI.rotateOverlay && !!mobileUI.touchControls;
-}
-
-/**
- * Reads all mobile gameplay UI elements.
- * @returns {MobileUIElements}
- */
-function getMobileUIElements() {
-    return {
-        rotateOverlay: document.getElementById("rotateOverlay"),
-        touchControls: document.getElementById("touchControls")
-    };
-}
-
-function hideMobileUI(mobileUI) {
-    mobileUI.rotateOverlay.style.display = "none";
-    mobileUI.touchControls.style.display = "none";
-}
-
-function handlePortraitMode(mobileUI) {
-    mobileUI.rotateOverlay.style.display = "flex";
-    mobileUI.touchControls.style.display = "none";
-    stopHorizontalInput();
-    if (shouldPauseForPortrait()) {
-        wasGameRunningBeforePortrait = true;
-        world.gameStarted = false;
-        pausedByPortraitMode = true;
-    }
-}
-
-function shouldPauseForPortrait() {
-    return world && world.gameStarted && !world.gameOver && !pausedByPortraitMode;
-}
-
-function handleLandscapeMode(mobileUI) {
-    mobileUI.rotateOverlay.style.display = "none";
-    if (world && pausedByPortraitMode && !world.gameOver) {
-        world.gameStarted = wasGameRunningBeforePortrait;
-        pausedByPortraitMode = false;
-        wasGameRunningBeforePortrait = false;
-    }
-    const shouldShowTouchControls = world && world.gameStarted && !world.gameOver;
-    mobileUI.touchControls.style.display = shouldShowTouchControls ? "flex" : "none";
-}
-
-function bindTouchMoveButton(button, side) {
-    if (!button) {
-        return;
-    }
-    const activate = createTouchMoveHandler(side, true);
-    const deactivate = createTouchMoveHandler(side, false);
-    button.addEventListener("touchstart", activate, { passive: false });
-    button.addEventListener("touchend", deactivate, { passive: false });
-    button.addEventListener("touchcancel", deactivate, { passive: false });
-}
-
-function bindTouchActionButton(button, actionKey) {
-    if (!button) {
-        return;
-    }
-    const activate = createTouchActionHandler(actionKey, true);
-    const deactivate = createTouchActionHandler(actionKey, false);
-    button.addEventListener("touchstart", activate, { passive: false });
-    button.addEventListener("touchend", deactivate, { passive: false });
-    button.addEventListener("touchcancel", deactivate, { passive: false });
-}
-
-function createTouchMoveHandler(side, isPressed) {
-    return (event) => {
-        event.preventDefault();
-        if (side === "left") {
-            keyboard.LEFT = isPressed;
-        }
-        if (side === "right") {
-            keyboard.RIGHT = isPressed;
-        }
-    };
-}
-
-function createTouchActionHandler(actionKey, isPressed) {
-    return (event) => {
-        event.preventDefault();
-        keyboard[actionKey] = isPressed;
-    };
-}
-
 function applyVolumeToAudio(audio) {
     audio.volume = gameVolume;
     audio.muted = gameVolume === 0;
 }
 
+/**
+ * Registers an audio instance for global game-volume updates.
+ * @param {HTMLAudioElement|null|undefined} audio Audio instance.
+ * @returns {void}
+ */
 function registerGameAudio(audio) {
     if (!audio) {
         return;
@@ -188,6 +69,10 @@ function setGameVolume(volume) {
     persistAudioSettings();
 }
 
+/**
+ * Persists current audio settings in local storage.
+ * @returns {void}
+ */
 function persistAudioSettings() {
     try {
         localStorage.setItem(AUDIO_SETTINGS_STORAGE_KEY, JSON.stringify({
@@ -199,6 +84,10 @@ function persistAudioSettings() {
     }
 }
 
+/**
+ * Loads persisted audio settings from local storage.
+ * @returns {void}
+ */
 function loadStoredAudioSettings() {
     try {
         const rawSettings = localStorage.getItem(AUDIO_SETTINGS_STORAGE_KEY);
@@ -218,6 +107,10 @@ function loadStoredAudioSettings() {
     }
 }
 
+/**
+ * Updates mute button label based on current volume.
+ * @returns {void}
+ */
 function updateMuteButtonLabel() {
     const muteButton = document.getElementById("muteButton");
     if (!muteButton) {
@@ -275,6 +168,10 @@ function init() {
     setupMobileListeners();
 }
 
+/**
+ * Disables context menu on canvas for touch devices.
+ * @returns {void}
+ */
 function setupCanvasContextMenu() {
     if (!isTouchDevice || !canvas) {
         return;
@@ -284,20 +181,45 @@ function setupCanvasContextMenu() {
     });
 }
 
+/**
+ * Initializes looping background music and volume tracking.
+ * @returns {void}
+ */
 function setupBackgroundMusic() {
     backgroundMusic.loop = true;
     registerGameAudio(backgroundMusic);
 }
 
+/**
+ * Starts background music playback.
+ * @returns {void}
+ */
 function startBackgroundMusic() {
     backgroundMusic.play().catch(() => {});
 }
 
+/**
+ * Stops and rewinds background music playback.
+ * @returns {void}
+ */
 function stopBackgroundMusic() {
     backgroundMusic.pause();
     backgroundMusic.currentTime = 0;
 }
 
+/**
+ * Reads frequently used UI elements for initialization.
+ * @returns {{
+ *   volumeSlider: HTMLElement|null,
+ *   muteButton: HTMLElement|null,
+ *   impressumButton: HTMLElement|null,
+ *   touchLeftButton: HTMLElement|null,
+ *   touchRightButton: HTMLElement|null,
+ *   touchJumpButton: HTMLElement|null,
+ *   touchThrowButton: HTMLElement|null,
+ *   touchBuyButton: HTMLElement|null
+ * }}
+ */
 function getInitUIElements() {
     return {
         volumeSlider: document.getElementById("volumeSlider"),
@@ -311,6 +233,11 @@ function getInitUIElements() {
     };
 }
 
+/**
+ * Binds slider-based volume controls.
+ * @param {HTMLInputElement} volumeSlider Volume range input.
+ * @returns {void}
+ */
 function setupVolumeControls(volumeSlider) {
     volumeSlider.value = Math.round(gameVolume * 100);
     setGameVolume(gameVolume);
@@ -333,10 +260,19 @@ function setupWorld() {
     world = new World(canvas, keyboard);
 }
 
+/**
+ * Hides the game-over overlay.
+ * @returns {void}
+ */
 function hideGameOverOverlay() {
     document.getElementById("gameOverOverlay").style.display = "none";
 }
 
+/**
+ * Sets up all primary menu/game control buttons.
+ * @param {{muteButton: HTMLElement|null, impressumButton: HTMLElement|null, volumeSlider: HTMLInputElement|null}} ui UI bundle.
+ * @returns {void}
+ */
 function setupMainButtons(ui) {
     setupStartButton(ui.muteButton);
     setupImpressumButton(ui.impressumButton);
@@ -344,6 +280,11 @@ function setupMainButtons(ui) {
     setupFullscreenButton();
 }
 
+/**
+ * Binds the impressum navigation button.
+ * @param {HTMLElement|null} impressumButton Impressum button element.
+ * @returns {void}
+ */
 function setupImpressumButton(impressumButton) {
     if (!impressumButton) {
         return;
@@ -354,6 +295,11 @@ function setupImpressumButton(impressumButton) {
     updateImpressumStartButtonVisibility(impressumButton);
 }
 
+/**
+ * Binds the start button to begin gameplay.
+ * @param {HTMLElement|null} muteButton Mute button element.
+ * @returns {void}
+ */
 function setupStartButton(muteButton) {
     document.getElementById("startButton").addEventListener("click", () => {
         world.startGame();
@@ -364,6 +310,12 @@ function setupStartButton(muteButton) {
     });
 }
 
+/**
+ * Binds mute button behavior and keeps slider in sync.
+ * @param {HTMLElement} muteButton Mute button element.
+ * @param {HTMLInputElement} volumeSlider Volume range input.
+ * @returns {void}
+ */
 function setupMuteButton(muteButton, volumeSlider) {
     muteButton.addEventListener("click", () => {
         const newVolume = gameVolume === 0 ? (volumeBeforeMute > 0 ? volumeBeforeMute : 0.5) : 0;
@@ -373,12 +325,20 @@ function setupMuteButton(muteButton, volumeSlider) {
     });
 }
 
+/**
+ * Binds fullscreen button behavior.
+ * @returns {void}
+ */
 function setupFullscreenButton() {
     document.getElementById("fullscreenButton").addEventListener("click", () => {
         requestGameContainerFullscreen();
     });
 }
 
+/**
+ * Requests fullscreen mode for the game container.
+ * @returns {void}
+ */
 function requestGameContainerFullscreen() {
     const gameContainer = document.getElementById("gameContainer");
     if (gameContainer.requestFullscreen) {
@@ -392,26 +352,47 @@ function requestGameContainerFullscreen() {
     }
 }
 
+/**
+ * Wires instruction modal open/close events.
+ * @returns {void}
+ */
 function setupInstructionModal() {
     document.getElementById("instructionsButton").addEventListener("click", openInstructionsModal);
     document.getElementById("closeInstructionsButton").addEventListener("click", closeInstructionsModal);
     document.getElementById("instructionsModal").addEventListener("click", closeInstructionsOnBackdrop);
 }
 
+/**
+ * Opens the instruction modal overlay.
+ * @returns {void}
+ */
 function openInstructionsModal() {
     document.getElementById("instructionsModal").style.display = "flex";
 }
 
+/**
+ * Closes the instruction modal overlay.
+ * @returns {void}
+ */
 function closeInstructionsModal() {
     document.getElementById("instructionsModal").style.display = "none";
 }
 
+/**
+ * Closes instruction modal when clicking the backdrop.
+ * @param {MouseEvent} event Click event.
+ * @returns {void}
+ */
 function closeInstructionsOnBackdrop(event) {
     if (event.target.id === "instructionsModal") {
         closeInstructionsModal();
     }
 }
 
+/**
+ * Binds restart button behavior.
+ * @returns {void}
+ */
 function setupRestartButton() {
     document.getElementById("restartButton").addEventListener("click", () => {
         restartGameWithoutReload();
@@ -438,6 +419,10 @@ function restartGameWithoutReload() {
     updateMobileGameplayUI();
 }
 
+/**
+ * Resets all keyboard state flags.
+ * @returns {void}
+ */
 function resetKeyboardState() {
     keyboard.RIGHT = false;
     keyboard.LEFT = false;
@@ -446,64 +431,4 @@ function resetKeyboardState() {
     keyboard.SPACE = false;
     keyboard.D = false;
     keyboard.B = false;
-}
-
-function setupTouchControls(touchLeftButton, touchRightButton, touchJumpButton, touchThrowButton, touchBuyButton) {
-    bindTouchMoveButton(touchLeftButton, "left");
-    bindTouchMoveButton(touchRightButton, "right");
-    bindTouchActionButton(touchJumpButton, "SPACE");
-    bindTouchActionButton(touchThrowButton, "D");
-    bindTouchActionButton(touchBuyButton, "B");
-}
-
-function setupMobileListeners() {
-    window.addEventListener("resize", updateMobileGameplayUI);
-    window.addEventListener("orientationchange", updateMobileGameplayUI);
-    updateMobileGameplayUI();
-}
-
-
-window.addEventListener("keydown", (event) => setKeyboardState(event, true));
-window.addEventListener("keyup", (event) => setKeyboardState(event, false));
-
-/**
- * Applies keydown/keyup events to mapped game controls.
- * @param {KeyboardEvent} event Keyboard event.
- * @param {boolean} isPressed Current key state.
- * @returns {void}
- */
-function setKeyboardState(event, isPressed) {
-    applyHorizontalKeys(event.key, isPressed);
-    applyVerticalKeys(event.key, isPressed);
-    applyActionKeys(event.key, isPressed);
-}
-
-function applyHorizontalKeys(key, isPressed) {
-    if (key === "ArrowRight" || key === "d" || key === "D") {
-        keyboard.RIGHT = isPressed;
-    }
-    if (key === "ArrowLeft" || key === "a" || key === "A") {
-        keyboard.LEFT = isPressed;
-    }
-}
-
-function applyVerticalKeys(key, isPressed) {
-    if (key === "ArrowDown") {
-        keyboard.DOWN = isPressed;
-    }
-    if (key === "ArrowUp") {
-        keyboard.UP = isPressed;
-    }
-}
-
-function applyActionKeys(key, isPressed) {
-    if (key === " ") {
-        keyboard.SPACE = isPressed;
-    }
-    if (key === "Enter") {
-        keyboard.D = isPressed;
-    }
-    if (key === "b" || key === "B") {
-        keyboard.B = isPressed;
-    }
 }

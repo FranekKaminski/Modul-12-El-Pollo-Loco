@@ -44,6 +44,11 @@ class ThrowableObject extends MovableObject {
         this.startThrowLoop(direction);
     }
 
+    /**
+     * Starts projectile frame updates until impact.
+     * @param {boolean} direction Throw direction (true for left).
+     * @returns {void}
+     */
     startThrowLoop(direction) {
         setInterval( () => {
             if (this.shouldSkipThrowFrame()) {
@@ -65,6 +70,11 @@ class ThrowableObject extends MovableObject {
         return this.world && (!this.world.gameStarted || this.world.gameOver);
     }
 
+    /**
+     * Moves the bottle one frame in throw direction.
+     * @param {boolean} direction Throw direction (true for left).
+     * @returns {void}
+     */
     moveThrownBottle(direction) {
         if (direction) {
             this.x -= 5;
@@ -73,6 +83,10 @@ class ThrowableObject extends MovableObject {
         this.x += 5;
     }
 
+    /**
+     * Detects floor contact and starts splash on impact.
+     * @returns {void}
+     */
     checkGroundImpact() {
         if (this.y >= this.GROUND_Y) {
             this.y = this.GROUND_Y;

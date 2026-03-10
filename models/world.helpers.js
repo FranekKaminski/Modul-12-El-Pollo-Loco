@@ -118,3 +118,159 @@ World.prototype.squashEnemy = function(enemy) {
     }
     this.playSound(this.chickenDeadSound);
 };
+
+/**
+ * Draws all active world entities on top of background and HUD.
+ * @returns {void}
+ */
+World.prototype.drawWorldEntities = function() {
+    this.addToMap(this.character);
+    this.addEnemiesToMap();
+    this.addToMap(this.endbossStatusbar);
+    this.addCoinsToMap();
+    this.addBottlesToMap();
+    this.addThrowablestoMap();
+};
+
+/**
+ * Renders collectible coins and updates their idle animation.
+ * @returns {void}
+ */
+World.prototype.addCoinsToMap = function() {
+    const now = Date.now();
+    this.level.coins.forEach((coin) => {
+        if (!coin.collected) {
+            if (!coin.lastAnimationUpdate) {
+                coin.lastAnimationUpdate = now;
+            }
+            if (now - coin.lastAnimationUpdate >= 180) {
+                coin.playAnimation(coin.COIN_IMAGE);
+                coin.lastAnimationUpdate = now;
+            }
+            this.addToMap(coin);
+        }
+    });
+};
+
+/**
+ * Renders all non-collected bottles.
+ * @returns {void}
+ */
+World.prototype.addBottlesToMap = function() {
+    this.level.bottles.forEach((bottle) => {
+        if (!bottle.collected) {
+            this.addToMap(bottle);
+        }
+    });
+};
+
+/**
+ * Renders enemies and triggers endboss approach audio once.
+ * @returns {void}
+ */
+World.prototype.addEnemiesToMap = function() {
+    this.level.enemies.forEach((enemy) => {
+        if (enemy instanceof Endboss && !this.endbossApproachPlayed && this.isObjectVisible(enemy)) {
+            this.playSound(this.endbossApproachSound);
+            this.endbossApproachPlayed = true;
+        }
+        if (!this.shouldHideEnemy(enemy)) {
+            this.addToMap(enemy);
+        }
+    });
+};
+
+/**
+ * Renders active throwable bottles until splash animation is complete.
+ * @returns {void}
+ */
+World.prototype.addThrowablestoMap = function() {
+    this.throwableObjects.forEach((throwable) => {
+        if (!throwable.splashFinished) {
+            this.addToMap(throwable);
+        }
+    });
+};
+
+/**
+ * Plays a world sound once from the beginning.
+ * @param {HTMLAudioElement} sound Sound instance.
+ * @returns {void}
+ */
+World.prototype.playSound = function(sound) {
+    this.applyCurrentVolume(sound);
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+};
+
+/**
+ * Returns whether an object is within the visible camera viewport.
+ * @param {MovableObject} mo World object to test.
+ * @returns {boolean}
+ */
+World.prototype.isObjectVisible = function(mo) {
+    let viewportLeft = -this.camera_x;
+    let viewportRight = viewportLeft + this.canvas.width;
+    let objectRight = mo.x + mo.width;
+    return objectRight >= viewportLeft && mo.x <= viewportRight;
+};
+
+/**
+ * Spawns throwable bottles while throw input is active.
+ * @returns {void}
+ */
+World.prototype.checkThrowObjects = function() {
+    if (!this.keyboard.D) {
+        this.throwKeyLocked = false;
+        return;
+    }
+
+    if (this.throwKeyLocked || this.collectedBottles <= 0) {
+        return;
+    }
+
+    this.throwBottle();
+    this.throwKeyLocked = true;
+};
+
+/**
+ * Syncs bottle status bar with collected bottle count.
+ * @returns {void}
+ */
+World.prototype.updateBottleStatusbar = function() {
+    let bottlePercentage = (this.collectedBottles / this.level.bottles.length) * 100;
+    this.bottleStatusbar.setPercentage(bottlePercentage);
+};
+
+/**
+ * Draws world layers for active gameplay.
+ * @returns {void}
+ */
+World.prototype.drawActiveGameScene = function() {
+    this.drawWorldBackground();
+    this.drawHud();
+    this.drawWorldEntities();
+    this.ctx.translate(-this.camera_x, 0);
+};
+
+/**
+ * Draws parallax background and cloud layers.
+ * @returns {void}
+ */
+World.prototype.drawWorldBackground = function() {
+    this.ctx.translate(this.camera_x, 0);
+    this.addObjectsToMap(this.level.backgroundObjects);
+    this.addObjectsToMap(this.level.clouds);
+};
+
+/**
+ * Draws the fixed HUD elements.
+ * @returns {void}
+ */
+World.prototype.drawHud = function() {
+    this.ctx.translate(-this.camera_x, 0);
+    this.addToMap(this.statusbar);
+    this.addToMap(this.coinStatusbar);
+    this.addToMap(this.bottleStatusbar);
+    this.ctx.translate(this.camera_x, 0);
+};

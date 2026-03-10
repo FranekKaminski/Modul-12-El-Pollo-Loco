@@ -45,7 +45,7 @@ class Statusbar extends DrawableObject {
      * @returns {number}
      */
     resolveImageIndex() {
-        const thresholds = [100, 80, 60, 40, 20];
+        const thresholds = [100, 80, 60, 40, 1];
         for (let i = 0; i < thresholds.length; i++) {
             if (this.isAboveThreshold(thresholds[i])) {
                 return 5 - i;
@@ -60,9 +60,6 @@ class Statusbar extends DrawableObject {
      * @returns {boolean}
      */
     isAboveThreshold(threshold) {
-        if (threshold === 100) {
-            return this.percentage === 100;
-        }
-        return this.percentage > threshold;
+        return this.percentage >= threshold;
     }
 }
