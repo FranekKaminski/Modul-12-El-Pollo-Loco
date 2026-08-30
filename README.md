@@ -2,6 +2,8 @@
 
 A jump, run & throw game made purely in JavaScript. Help Pepe collect coins and bottles of tabasco salsa to fight the crazy hen across dynamically generated levels.
 
+![El Pollo Loco](img/elpolloloco.png)
+
 ## ⌨️ Technologies
 
 - `JavaScript` (object-oriented)
