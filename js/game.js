@@ -360,6 +360,13 @@ function setupInstructionModal() {
     document.getElementById("instructionsButton").addEventListener("click", openInstructionsModal);
     document.getElementById("closeInstructionsButton").addEventListener("click", closeInstructionsModal);
     document.getElementById("instructionsModal").addEventListener("click", closeInstructionsOnBackdrop);
+    const footerInstructionsLink = document.getElementById("footerInstructionsLink");
+    if (footerInstructionsLink) {
+        footerInstructionsLink.addEventListener("click", (event) => {
+            event.preventDefault();
+            openInstructionsModal();
+        });
+    }
 }
 
 /**
