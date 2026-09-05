@@ -56,7 +56,86 @@
             transform: translateY(0);
             box-shadow: 0 2px 10px rgba(255, 107, 0, 0.4);
         }
-        
+
+        .instructions-panel {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .instructions-panel h2 {
+            margin-top: 0;
+        }
+
+        .instructions-list {
+            list-style: none;
+            margin: 20px 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .instruction-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-align: left;
+        }
+
+        .keycap-group {
+            display: flex;
+            gap: 4px;
+            flex: 0 0 72px;
+            justify-content: center;
+        }
+
+        .keycap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 30px;
+            height: 30px;
+            padding: 0 6px;
+            background: linear-gradient(180deg, #fafafa, #dcdcdc);
+            border: 1px solid #b5b5b5;
+            border-bottom: 3px solid #999;
+            border-radius: 6px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .instruction-text {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .instruction-icon {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+        }
+
+        .instructions-close-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ff6b00;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
         #buttonContainer {
             position: absolute;
             top: 15px;
@@ -341,14 +420,41 @@
         <button id="muteButton" class="button-modern">MUTE</button>
         <button id="startCenterButton" class="button-modern" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px 40px; font-size: 18px; margin: 0; display: none;">START GAME</button>
         <div id="instructionsModal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 1500; justify-content: center; align-items: center;">
-            <div style="background-color: white; padding: 30px; border-radius: 10px; text-align: center; max-width: 600px;">
+            <div class="instructions-panel">
                 <h2>HOW TO PLAY</h2>
-                <p>PRESS A OR LEFT ARROW-KEY TO GO LEFT</p>
-                <p>PRESS SPACE-KEY TO JUMP</p>
-                <p>PRESS D OR RIGHT ARROW-KEY TO GO RIGHT</p>
-                <p>PRESS ENTER TO THROW BOTTLES</p>
-                <p>PRESS B TO BUY 1 BOTTLE WITH 1 COIN</p>
-                <button id="closeInstructionsButton" style="padding: 10px 20px; font-size: 16px; background-color: #ff6b00; color: white; border: none; border-radius: 5px; cursor: pointer;">CLOSE</button>
+                <ul class="instructions-list">
+                    <li class="instruction-row">
+                        <span class="keycap-group">
+                            <span class="keycap">&#9664;</span>
+                        </span>
+                        <span class="instruction-text">Move left</span>
+                    </li>
+                    <li class="instruction-row">
+                        <span class="keycap-group">
+                            <span class="keycap">&#9654;</span>
+                        </span>
+                        <span class="instruction-text">Move right</span>
+                    </li>
+                    <li class="instruction-row">
+                        <span class="keycap-group">
+                            <span class="keycap">&#9650;</span>
+                        </span>
+                        <span class="instruction-text">Jump</span>
+                    </li>
+                    <li class="instruction-row">
+                        <span class="keycap-group">
+                            <span class="keycap">M</span>
+                        </span>
+                        <span class="instruction-text">Throw bottle <img class="instruction-icon" src="./img/7_statusbars/3_icons/icon_salsa_bottle.png" alt="Bottle"></span>
+                    </li>
+                    <li class="instruction-row">
+                        <span class="keycap-group">
+                            <span class="keycap">N</span>
+                        </span>
+                        <span class="instruction-text">Buy 1 <img class="instruction-icon" src="./img/7_statusbars/3_icons/icon_salsa_bottle.png" alt="Bottle"> for 1 <img class="instruction-icon" src="./img/7_statusbars/3_icons/icon_coin.png" alt="Coin"></span>
+                    </li>
+                </ul>
+                <button id="closeInstructionsButton" class="instructions-close-btn">CLOSE</button>
             </div>
         </div>
     </div>

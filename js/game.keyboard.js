@@ -20,10 +20,10 @@ function setKeyboardState(event, isPressed) {
  * @returns {void}
  */
 function applyHorizontalKeys(key, isPressed) {
-    if (key === "ArrowRight" || key === "d" || key === "D") {
+    if (key === "ArrowRight") {
         keyboard.RIGHT = isPressed;
     }
-    if (key === "ArrowLeft" || key === "a" || key === "A") {
+    if (key === "ArrowLeft") {
         keyboard.LEFT = isPressed;
     }
 }
@@ -50,13 +50,10 @@ function applyVerticalKeys(key, isPressed) {
  * @returns {void}
  */
 function applyActionKeys(key, isPressed) {
-    if (key === " ") {
-        keyboard.SPACE = isPressed;
-    }
-    if (key === "Enter") {
+    if (key === "m" || key === "M") {
         keyboard.D = isPressed;
     }
-    if (key === "b" || key === "B") {
+    if (key === "n" || key === "N") {
         keyboard.B = isPressed;
     }
 }

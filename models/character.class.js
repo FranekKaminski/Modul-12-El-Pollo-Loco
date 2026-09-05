@@ -238,7 +238,7 @@ class Character extends MovableObject {
      * @returns {void}
      */
     handleJumpInput() {
-        if (this.world.keyboard.SPACE && !this.IsAboveGround()) {
+        if (this.world.keyboard.UP && !this.IsAboveGround()) {
             this.jump();
         }
     }

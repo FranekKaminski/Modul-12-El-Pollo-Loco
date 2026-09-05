@@ -196,7 +196,7 @@ function createTouchActionHandler(actionKey, isPressed) {
 function setupTouchControls(touchLeftButton, touchRightButton, touchJumpButton, touchThrowButton, touchBuyButton) {
     bindTouchMoveButton(touchLeftButton, "left");
     bindTouchMoveButton(touchRightButton, "right");
-    bindTouchActionButton(touchJumpButton, "SPACE");
+    bindTouchActionButton(touchJumpButton, "UP");
     bindTouchActionButton(touchThrowButton, "D");
     bindTouchActionButton(touchBuyButton, "B");
 }

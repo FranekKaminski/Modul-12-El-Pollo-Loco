@@ -435,7 +435,6 @@ function resetKeyboardState() {
     keyboard.LEFT = false;
     keyboard.UP = false;
     keyboard.DOWN = false;
-    keyboard.SPACE = false;
     keyboard.D = false;
     keyboard.B = false;
 }
